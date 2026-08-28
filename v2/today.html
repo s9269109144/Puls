@@ -8,18 +8,19 @@
   :root{
     --blue:#4f7df5;
     --blue-soft:#eef2ff;
-    --background:#f3f6fd;
+    --background:#eef1f8;
     --card:#ffffff;
     --border:#e4e8ed;
     --foreground:#152033;
-    --muted-foreground:#697487;
+    --muted-foreground:#7c8698;
     --navy:#10243e;
-    --mint:#5aab93;
-    --mint-soft:#eaf7f2;
-    --coral:#ee785c;
-    --coral-soft:#fff0eb;
-    --violet:#8970bd;
-    --violet-soft:#f2edfb;
+    --mint:#3f9d81;
+    --mint-soft:#e6f6f0;
+    --coral:#e35f3f;
+    --coral-soft:#fde9e2;
+    --violet:#7c5fc4;
+    --violet-soft:#efe9fb;
+    --shadow: 0 2px 10px rgba(16,36,62,.06);
   }
   *{box-sizing:border-box;}
   body{
@@ -27,46 +28,49 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     background:var(--background);
     color:var(--foreground);
-    padding:20px 16px 40px;
+    padding:20px 16px 90px;
+    -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:420px;margin:0 auto;}
-  header{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
   .logo{
-    width:36px;height:36px;border-radius:10px;background:var(--blue);
-    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
+    width:40px;height:40px;border-radius:12px;background:var(--blue);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;
+    box-shadow:var(--shadow);
   }
-  header h1{font-size:19px;margin:0;}
-  header small{color:var(--muted-foreground);display:block;font-size:14px;}
+  header h1{font-size:20px;margin:0;font-weight:700;}
+  header small{color:var(--muted-foreground);display:block;font-size:14px;margin-top:2px;}
 
   .hero{
     background:var(--navy);
     color:#fff;
-    border-radius:20px;
-    padding:20px;
-    margin-bottom:16px;
+    border-radius:22px;
+    padding:24px 22px;
+    margin-bottom:28px;
+    box-shadow:0 8px 24px rgba(16,36,62,.18);
   }
-  .hero .label{font-size:15px;opacity:.75;margin-bottom:6px;}
-  .hero .value{font-size:40px;font-weight:700;}
-  .hero .sub{font-size:15px;opacity:.85;margin-top:6px;}
+  .hero .label{font-size:14px;opacity:.65;margin-bottom:8px;letter-spacing:.02em;}
+  .hero .value{font-size:44px;font-weight:800;line-height:1;}
+  .hero .sub{font-size:14px;opacity:.75;margin-top:10px;line-height:1.4;}
 
   .section-title{
-    font-size:16px;font-weight:600;color:var(--muted-foreground);
-    margin:20px 0 10px;text-transform:uppercase;letter-spacing:.03em;
+    font-size:13px;font-weight:700;color:var(--muted-foreground);
+    margin:0 2px 14px;text-transform:uppercase;letter-spacing:.06em;
   }
 
   .card{
     background:var(--card);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:14px;
-    margin-bottom:10px;
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:14px;
     display:flex;
-    gap:12px;
+    gap:14px;
     align-items:center;
+    box-shadow:var(--shadow);
   }
   .badge{
-    width:48px;height:48px;border-radius:12px;flex:0 0 auto;
-    display:flex;align-items:center;justify-content:center;font-size:20px;
+    width:50px;height:50px;border-radius:14px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-size:22px;
   }
   .b-club{background:var(--blue-soft);color:var(--blue);}
   .b-study{background:var(--mint-soft);color:var(--mint);}
@@ -74,33 +78,39 @@
   .b-default{background:var(--violet-soft);color:var(--violet);}
 
   .card .info{flex:1;min-width:0;}
-  .card .title{font-weight:700;font-size:16px;margin-bottom:3px;}
-  .card .meta{font-size:14px;color:var(--muted-foreground);}
-  .card .cat{
-    display:inline-block;font-size:13px;font-weight:600;padding:3px 10px;border-radius:20px;
-    margin-top:6px;
+  .card .title{
+    font-weight:700;font-size:16px;line-height:1.3;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .cat-club{background:var(--blue-soft);color:var(--blue);}
-  .cat-study{background:var(--mint-soft);color:var(--mint);}
-  .cat-live{background:var(--coral-soft);color:var(--coral);}
-  .cat-default{background:var(--violet-soft);color:var(--violet);}
-  .rsvp{
-    display:flex;gap:6px;flex:0 0 auto;
+  .card .meta{
+    font-size:13px;color:var(--muted-foreground);margin-top:4px;
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;
   }
+  .meta .cat-dot{font-weight:700;}
+  .cat-club .cat-dot{color:var(--blue);}
+  .cat-study .cat-dot{color:var(--mint);}
+  .cat-live .cat-dot{color:var(--coral);}
+  .cat-default .cat-dot{color:var(--violet);}
+
+  .rsvp{flex:0 0 auto;}
   .rsvp button{
-    border:none;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;
+    border:none;border-radius:12px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;
+    background:var(--blue-soft);color:var(--blue);
   }
-  .rsvp .yes{background:var(--blue);color:#fff;}
-  .rsvp .no{background:var(--muted-foreground,#697487);opacity:.15;color:var(--foreground);}
+  .rsvp button:active{background:var(--blue);color:#fff;}
 
   nav{
-    position:fixed;bottom:0;left:0;right:0;
-    background:#fff;border-top:1px solid var(--border);
-    display:flex;justify-content:space-around;padding:12px 4px;
-    max-width:420px;margin:0 auto;
+    position:fixed;bottom:14px;left:16px;right:16px;
+    background:#fff;border-radius:18px;
+    display:flex;justify-content:space-around;padding:10px 4px;
+    max-width:388px;margin:0 auto;
+    box-shadow:0 8px 24px rgba(16,36,62,.14);
   }
-  nav div{font-size:15px;font-weight:600;color:var(--muted-foreground);text-align:center;}
-  nav div.active{color:var(--blue);font-weight:600;}
+  nav div{
+    font-size:12px;font-weight:600;color:var(--muted-foreground);text-align:center;
+    padding:8px 6px;border-radius:12px;flex:1;
+  }
+  nav div.active{color:var(--blue);background:var(--blue-soft);}
 </style>
 </head>
 <body>
@@ -126,7 +136,6 @@
 <nav>
   <div class="active">Сегодня</div>
   <div>Календарь</div>
-  <div>Уведомления</div>
   <div>Команда</div>
   <div>Настройки</div>
 </nav>
@@ -144,7 +153,7 @@ const CATEGORY_ICON = {
 function fmtDate(dtStr){
   const [datePart, timePart] = dtStr.split(' ');
   const [y,m,d] = datePart.split('-');
-  return `${d}.${m} в ${timePart}`;
+  return `${d}.${m} · ${timePart}`;
 }
 
 async function load(){
@@ -158,8 +167,8 @@ async function load(){
   }
   document.getElementById('hero-count').textContent = events.length;
   document.getElementById('hero-sub').textContent = events.length
-    ? `ближайшее: ${events[0].title}, ${fmtDate(events[0].event_dt)}`
-    : 'событий не найдено';
+    ? `Ближайшее — ${events[0].title}, ${fmtDate(events[0].event_dt)}`
+    : 'Событий не найдено';
 
   const list = document.getElementById('list');
   list.innerHTML = '';
@@ -171,11 +180,14 @@ async function load(){
       <div class="badge ${meta.cls}">${meta.icon}</div>
       <div class="info">
         <div class="title">${ev.title}</div>
-        <div class="meta">${fmtDate(ev.event_dt)} · ${ev.responsible || ''}</div>
-        <span class="cat ${meta.cat}">${ev.category || ''}</span>
+        <div class="meta ${meta.cat}">
+          <span>${fmtDate(ev.event_dt)}</span>
+          <span class="cat-dot">•</span>
+          <span>${ev.category || ''}</span>
+        </div>
       </div>
       <div class="rsvp">
-        <button class="yes">Буду</button>
+        <button>Буду</button>
       </div>
     `;
     list.appendChild(card);
