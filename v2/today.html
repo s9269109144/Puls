@@ -84,13 +84,15 @@
   }
   .card .meta{
     font-size:13px;color:var(--muted-foreground);margin-top:4px;
-    display:flex;align-items:center;gap:6px;flex-wrap:wrap;
   }
-  .meta .cat-dot{font-weight:700;}
-  .cat-club .cat-dot{color:var(--blue);}
-  .cat-study .cat-dot{color:var(--mint);}
-  .cat-live .cat-dot{color:var(--coral);}
-  .cat-default .cat-dot{color:var(--violet);}
+  .card .cat-pill{
+    display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;
+    border-radius:20px;margin-top:7px;
+  }
+  .cat-club{background:var(--blue-soft);color:var(--blue);}
+  .cat-study{background:var(--mint-soft);color:var(--mint);}
+  .cat-live{background:var(--coral-soft);color:var(--coral);}
+  .cat-default{background:var(--violet-soft);color:var(--violet);}
 
   .rsvp{flex:0 0 auto;}
   .rsvp button{
@@ -180,11 +182,8 @@ async function load(){
       <div class="badge ${meta.cls}">${meta.icon}</div>
       <div class="info">
         <div class="title">${ev.title}</div>
-        <div class="meta ${meta.cat}">
-          <span>${fmtDate(ev.event_dt)}</span>
-          <span class="cat-dot">•</span>
-          <span>${ev.category || ''}</span>
-        </div>
+        <div class="meta">${fmtDate(ev.event_dt)}</div>
+        <span class="cat-pill ${meta.cat}">${ev.category || ''}</span>
       </div>
       <div class="rsvp">
         <button>Буду</button>
