@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Пульс команды — Сегодня</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root{
     --blue:#4f7df5;
@@ -156,6 +157,12 @@ function fmtDate(dtStr){
   const [datePart, timePart] = dtStr.split(' ');
   const [y,m,d] = datePart.split('-');
   return `${d}.${m} · ${timePart}`;
+}
+
+const tg = window.Telegram && window.Telegram.WebApp;
+if(tg){
+  tg.ready();
+  if(tg.initData) localStorage.setItem('tg_init_data', tg.initData);
 }
 
 async function load(){

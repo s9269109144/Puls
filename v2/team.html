@@ -174,7 +174,7 @@ function renderBranch(member, byMentor){
 
 const tg = window.Telegram && window.Telegram.WebApp;
 if(tg) tg.ready();
-const initData = tg ? tg.initData : '';
+const initData = (tg && tg.initData) || localStorage.getItem('tg_init_data') || '';
 
 if(!initData){
   document.getElementById('tree').innerHTML =

@@ -165,7 +165,7 @@
 <script>
 const tg = window.Telegram && window.Telegram.WebApp;
 if(tg) tg.ready();
-const initData = tg ? tg.initData : '';
+const initData = (tg && tg.initData) || localStorage.getItem('tg_init_data') || '';
 const myId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
 
 if(initData){
