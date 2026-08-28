@@ -48,18 +48,17 @@
   .hero .stat .value{font-size:32px;font-weight:800;line-height:1;}
   .hero .stat .label{font-size:13px;opacity:.65;margin-top:4px;}
 
-  .group{margin-bottom:24px;}
-  .group-title{
-    display:flex;align-items:center;justify-content:space-between;
-    margin:0 2px 12px;
+  .section-title{
+    font-size:13px;font-weight:700;color:var(--muted-foreground);
+    margin:0 2px 14px;text-transform:uppercase;letter-spacing:.06em;
   }
-  .group-title .name{font-size:13px;font-weight:700;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.06em;}
-  .group-title .count{font-size:13px;font-weight:700;color:var(--muted-foreground);}
 
+  .branch{margin-bottom:14px;}
   .member{
-    background:var(--card);border-radius:16px;padding:14px;margin-bottom:10px;
+    background:var(--card);border-radius:16px;padding:14px;margin-bottom:8px;
     display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);
   }
+  .children{margin-left:26px;padding-left:14px;border-left:2px dashed #d7ddec;margin-top:8px;}
   .avatar{
     width:44px;height:44px;border-radius:50%;flex:0 0 auto;
     display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;
@@ -73,8 +72,9 @@
   .role-admin{background:var(--violet-soft);color:var(--violet);}
   .role-coordinator{background:var(--mint-soft);color:var(--mint);}
   .role-participant{background:var(--blue-soft);color:var(--blue);}
+  .group-tag{color:var(--muted-foreground);font-size:12px;margin-left:6px;}
 
-  .empty-group{
+  .empty{
     background:var(--card);border-radius:16px;padding:16px;text-align:center;
     color:var(--muted-foreground);font-size:13px;box-shadow:var(--shadow);
   }
@@ -112,7 +112,8 @@
     </div>
   </div>
 
-  <div id="groups"></div>
+  <div class="section-title">Структура наставничества</div>
+  <div id="tree"></div>
 </div>
 
 <nav>
@@ -147,41 +148,49 @@ function colorFor(name){
   return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
 
+function memberHtml(m){
+  return `
+    <div class="member">
+      <div class="avatar" style="background:${colorFor(m.name)}">${initials(m.name)}</div>
+      <div class="info">
+        <div class="name">${m.name || 'Без имени'}</div>
+        <span class="role-pill ${ROLE_CLASS[m.role] || 'role-participant'}">${ROLE_LABEL[m.role] || m.role}</span>
+        <span class="group-tag">${m.group_name || 'без группы'}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderBranch(member, byMentor){
+  const kids = byMentor[member.telegram_id] || [];
+  let html = `<div class="branch">${memberHtml(member)}`;
+  if(kids.length){
+    html += `<div class="children">${kids.map(k => renderBranch(k, byMentor)).join('')}</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
 fetch('https://pulskomandy.duckdns.org/api/team', {cache:'no-store'})
   .then(r => r.json())
   .then(members => {
     document.getElementById('total-count').textContent = members.length;
     document.getElementById('group-count').textContent = GROUPS.length;
 
-    const container = document.getElementById('groups');
-    container.innerHTML = '';
-    GROUPS.forEach(g => {
-      const inGroup = members.filter(m => m.group_name === g);
-      const block = document.createElement('div');
-      block.className = 'group';
-      let membersHtml = inGroup.length
-        ? inGroup.map(m => `
-            <div class="member">
-              <div class="avatar" style="background:${colorFor(m.name)}">${initials(m.name)}</div>
-              <div class="info">
-                <div class="name">${m.name || 'Без имени'}</div>
-                <span class="role-pill ${ROLE_CLASS[m.role] || 'role-participant'}">${ROLE_LABEL[m.role] || m.role}</span>
-              </div>
-            </div>
-          `).join('')
-        : `<div class="empty-group">Пока никого нет</div>`;
-      block.innerHTML = `
-        <div class="group-title">
-          <span class="name">${g}</span>
-          <span class="count">${inGroup.length}</span>
-        </div>
-        ${membersHtml}
-      `;
-      container.appendChild(block);
+    const byMentor = {};
+    members.forEach(m => {
+      const key = m.mentor_id || 'root';
+      (byMentor[key] = byMentor[key] || []).push(m);
     });
+    const roots = byMentor['root'] || [];
+
+    const tree = document.getElementById('tree');
+    tree.innerHTML = roots.length
+      ? roots.map(m => renderBranch(m, byMentor)).join('')
+      : '<div class="empty">Пока никого нет</div>';
   })
   .catch(() => {
-    document.getElementById('groups').innerHTML = '<div class="empty-group">Нет данных</div>';
+    document.getElementById('tree').innerHTML = '<div class="empty">Нет данных</div>';
   });
 </script>
 </body>
