@@ -97,9 +97,9 @@
   .rsvp{flex:0 0 auto;}
   .rsvp button{
     border:none;border-radius:12px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;
-    background:var(--blue-soft);color:var(--blue);
+    background:var(--blue-soft);color:var(--blue);transition:background .15s,color .15s;
   }
-  .rsvp button:active{background:var(--blue);color:#fff;}
+  .rsvp button.going{background:var(--blue);color:#fff;}
 
   nav{
     position:fixed;bottom:14px;left:16px;right:16px;
@@ -186,10 +186,23 @@ async function load(){
         <span class="cat-pill ${meta.cat}">${ev.category || ''}</span>
       </div>
       <div class="rsvp">
-        <button>Буду</button>
+        <button data-id="${ev.id}">Буду</button>
       </div>
     `;
     list.appendChild(card);
+  });
+
+  document.querySelectorAll('.rsvp button').forEach(btn => {
+    const key = 'rsvp_' + btn.dataset.id;
+    if(localStorage.getItem(key) === '1'){
+      btn.classList.add('going');
+      btn.textContent = 'Иду ✓';
+    }
+    btn.addEventListener('click', () => {
+      const going = btn.classList.toggle('going');
+      btn.textContent = going ? 'Иду ✓' : 'Буду';
+      localStorage.setItem(key, going ? '1' : '0');
+    });
   });
 }
 load();
