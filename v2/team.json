@@ -1,0 +1,14 @@
+[
+  {
+    "telegram_id": 417214059,
+    "name": "Сергей",
+    "role": "owner",
+    "group_name": "Ключевые"
+  },
+  {
+    "telegram_id": 8986027749,
+    "name": "Ксения",
+    "role": "coordinator",
+    "group_name": "Мастера"
+  }
+]

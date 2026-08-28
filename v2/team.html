@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Пульс команды — Команда</title>
+<style>
+  :root{
+    --blue:#4f7df5;
+    --blue-soft:#eef2ff;
+    --background:#eef1f8;
+    --card:#ffffff;
+    --foreground:#152033;
+    --muted-foreground:#7c8698;
+    --navy:#10243e;
+    --mint:#3f9d81;
+    --mint-soft:#e6f6f0;
+    --coral:#e35f3f;
+    --coral-soft:#fde9e2;
+    --violet:#7c5fc4;
+    --violet-soft:#efe9fb;
+    --shadow: 0 2px 10px rgba(16,36,62,.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--background);
+    color:var(--foreground);
+    padding:20px 16px 90px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:420px;margin:0 auto;}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+  .logo{
+    width:40px;height:40px;border-radius:12px;background:var(--blue);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;
+    box-shadow:var(--shadow);
+  }
+  header h1{font-size:20px;margin:0;font-weight:700;}
+  header small{color:var(--muted-foreground);display:block;font-size:14px;margin-top:2px;}
+
+  .hero{
+    background:var(--navy);color:#fff;border-radius:22px;padding:24px 22px;margin-bottom:28px;
+    box-shadow:0 8px 24px rgba(16,36,62,.18);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .hero .stat .value{font-size:32px;font-weight:800;line-height:1;}
+  .hero .stat .label{font-size:13px;opacity:.65;margin-top:4px;}
+
+  .group{margin-bottom:24px;}
+  .group-title{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:0 2px 12px;
+  }
+  .group-title .name{font-size:13px;font-weight:700;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.06em;}
+  .group-title .count{font-size:13px;font-weight:700;color:var(--muted-foreground);}
+
+  .member{
+    background:var(--card);border-radius:16px;padding:14px;margin-bottom:10px;
+    display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);
+  }
+  .avatar{
+    width:44px;height:44px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;
+  }
+  .member .info{flex:1;min-width:0;}
+  .member .name{font-weight:700;font-size:15px;}
+  .role-pill{
+    display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:4px;
+  }
+  .role-owner{background:var(--coral-soft);color:var(--coral);}
+  .role-admin{background:var(--violet-soft);color:var(--violet);}
+  .role-coordinator{background:var(--mint-soft);color:var(--mint);}
+  .role-participant{background:var(--blue-soft);color:var(--blue);}
+
+  .empty-group{
+    background:var(--card);border-radius:16px;padding:16px;text-align:center;
+    color:var(--muted-foreground);font-size:13px;box-shadow:var(--shadow);
+  }
+
+  nav{
+    position:fixed;bottom:14px;left:16px;right:16px;background:#fff;border-radius:18px;
+    display:flex;justify-content:space-around;padding:10px 4px;max-width:388px;margin:0 auto;
+    box-shadow:0 8px 24px rgba(16,36,62,.14);
+  }
+  nav a{
+    font-size:12px;font-weight:600;color:var(--muted-foreground);text-align:center;
+    padding:8px 6px;border-radius:12px;flex:1;text-decoration:none;
+  }
+  nav a.active{color:var(--blue);background:var(--blue-soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">П</div>
+    <div>
+      <h1>Пульс команды</h1>
+      <small>Команда</small>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="stat">
+      <div class="value" id="total-count">—</div>
+      <div class="label">участников</div>
+    </div>
+    <div class="stat">
+      <div class="value" id="group-count">—</div>
+      <div class="label">групп</div>
+    </div>
+  </div>
+
+  <div id="groups"></div>
+</div>
+
+<nav>
+  <a href="today.html">Сегодня</a>
+  <a href="calendar.html">Календарь</a>
+  <a href="team.html" class="active">Команда</a>
+  <a href="settings.html">Настройки</a>
+</nav>
+
+<script>
+const GROUPS = ['Новички', 'Партнёры', 'Мастера', 'Ключевые'];
+const ROLE_LABEL = {
+  owner: 'Владелец',
+  admin: 'Админ',
+  coordinator: 'Координатор',
+  participant: 'Участник',
+};
+const ROLE_CLASS = {
+  owner: 'role-owner',
+  admin: 'role-admin',
+  coordinator: 'role-coordinator',
+  participant: 'role-participant',
+};
+const AVATAR_COLORS = ['#4f7df5','#3f9d81','#e35f3f','#7c5fc4','#c9962e'];
+
+function initials(name){
+  return (name || '?').trim().slice(0,1).toUpperCase();
+}
+function colorFor(name){
+  let h = 0;
+  for(const ch of (name||'')) h += ch.charCodeAt(0);
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+fetch('team.json', {cache:'no-store'})
+  .then(r => r.json())
+  .then(members => {
+    document.getElementById('total-count').textContent = members.length;
+    document.getElementById('group-count').textContent = GROUPS.length;
+
+    const container = document.getElementById('groups');
+    container.innerHTML = '';
+    GROUPS.forEach(g => {
+      const inGroup = members.filter(m => m.group_name === g);
+      const block = document.createElement('div');
+      block.className = 'group';
+      let membersHtml = inGroup.length
+        ? inGroup.map(m => `
+            <div class="member">
+              <div class="avatar" style="background:${colorFor(m.name)}">${initials(m.name)}</div>
+              <div class="info">
+                <div class="name">${m.name || 'Без имени'}</div>
+                <span class="role-pill ${ROLE_CLASS[m.role] || 'role-participant'}">${ROLE_LABEL[m.role] || m.role}</span>
+              </div>
+            </div>
+          `).join('')
+        : `<div class="empty-group">Пока никого нет</div>`;
+      block.innerHTML = `
+        <div class="group-title">
+          <span class="name">${g}</span>
+          <span class="count">${inGroup.length}</span>
+        </div>
+        ${membersHtml}
+      `;
+      container.appendChild(block);
+    });
+  })
+  .catch(() => {
+    document.getElementById('groups').innerHTML = '<div class="empty-group">Нет данных</div>';
+  });
+</script>
+</body>
+</html>

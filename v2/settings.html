@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Пульс команды — Настройки</title>
+<style>
+  :root{
+    --blue:#4f7df5;
+    --blue-soft:#eef2ff;
+    --background:#eef1f8;
+    --card:#ffffff;
+    --foreground:#152033;
+    --muted-foreground:#7c8698;
+    --navy:#10243e;
+    --coral:#e35f3f;
+    --coral-soft:#fde9e2;
+    --shadow: 0 2px 10px rgba(16,36,62,.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--background);
+    color:var(--foreground);
+    padding:20px 16px 90px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:420px;margin:0 auto;}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+  .logo{
+    width:40px;height:40px;border-radius:12px;background:var(--blue);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;
+    box-shadow:var(--shadow);
+  }
+  header h1{font-size:20px;margin:0;font-weight:700;}
+  header small{color:var(--muted-foreground);display:block;font-size:14px;margin-top:2px;}
+
+  .profile{
+    background:var(--navy);color:#fff;border-radius:22px;padding:22px;margin-bottom:24px;
+    display:flex;align-items:center;gap:14px;box-shadow:0 8px 24px rgba(16,36,62,.18);
+  }
+  .profile .avatar{
+    width:56px;height:56px;border-radius:50%;background:var(--blue);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;
+  }
+  .profile .name{font-weight:700;font-size:17px;}
+  .profile .role{font-size:13px;opacity:.75;margin-top:2px;}
+
+  .section-title{
+    font-size:13px;font-weight:700;color:var(--muted-foreground);
+    margin:0 2px 12px;text-transform:uppercase;letter-spacing:.06em;
+  }
+
+  .list{background:var(--card);border-radius:18px;box-shadow:var(--shadow);margin-bottom:24px;overflow:hidden;}
+  .row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px;border-bottom:1px solid #f0f2f7;
+  }
+  .row:last-child{border-bottom:none;}
+  .row .label{font-size:15px;font-weight:600;}
+  .row .desc{font-size:13px;color:var(--muted-foreground);margin-top:2px;}
+
+  .switch{
+    position:relative;width:46px;height:26px;flex:0 0 auto;
+  }
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{
+    position:absolute;inset:0;background:#dfe3ea;border-radius:20px;cursor:pointer;transition:.2s;
+  }
+  .slider::before{
+    content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;
+    background:#fff;border-radius:50%;transition:.2s;
+  }
+  input:checked + .slider{background:var(--blue);}
+  input:checked + .slider::before{transform:translateX(20px);}
+
+  .danger{
+    background:var(--coral-soft);color:var(--coral);border:none;width:100%;
+    padding:14px;border-radius:16px;font-weight:700;font-size:15px;cursor:pointer;
+  }
+
+  nav{
+    position:fixed;bottom:14px;left:16px;right:16px;background:#fff;border-radius:18px;
+    display:flex;justify-content:space-around;padding:10px 4px;max-width:388px;margin:0 auto;
+    box-shadow:0 8px 24px rgba(16,36,62,.14);
+  }
+  nav a{
+    font-size:12px;font-weight:600;color:var(--muted-foreground);text-align:center;
+    padding:8px 6px;border-radius:12px;flex:1;text-decoration:none;
+  }
+  nav a.active{color:var(--blue);background:var(--blue-soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">П</div>
+    <div>
+      <h1>Пульс команды</h1>
+      <small>Настройки</small>
+    </div>
+  </header>
+
+  <div class="profile">
+    <div class="avatar" id="p-initial">?</div>
+    <div>
+      <div class="name" id="p-name">—</div>
+      <div class="role" id="p-role">—</div>
+    </div>
+  </div>
+
+  <div class="section-title">Уведомления</div>
+  <div class="list">
+    <div class="row">
+      <div>
+        <div class="label">Напоминания о событиях</div>
+        <div class="desc">За день, час и перед стартом</div>
+      </div>
+      <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div>
+        <div class="label">Утренняя сводка</div>
+        <div class="desc">Список событий на сегодня в 08:00</div>
+      </div>
+      <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div>
+        <div class="label">Обязательные события</div>
+        <div class="desc">Дожим за 90 минут, если не ответил</div>
+      </div>
+      <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="section-title">Аккаунт</div>
+  <div class="list">
+    <div class="row">
+      <div>
+        <div class="label">Группа</div>
+        <div class="desc" id="p-group">—</div>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <div class="label">Telegram ID</div>
+        <div class="desc" id="p-id">—</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="danger">Выйти</button>
+</div>
+
+<nav>
+  <a href="today.html">Сегодня</a>
+  <a href="calendar.html">Календарь</a>
+  <a href="team.html">Команда</a>
+  <a href="settings.html" class="active">Настройки</a>
+</nav>
+
+<script>
+fetch('team.json', {cache:'no-store'})
+  .then(r => r.json())
+  .then(members => {
+    const me = members.find(m => m.role === 'owner') || members[0];
+    if(!me) return;
+    document.getElementById('p-initial').textContent = (me.name||'?').slice(0,1).toUpperCase();
+    document.getElementById('p-name').textContent = me.name || 'Без имени';
+    const roleLabel = {owner:'Владелец', admin:'Админ', coordinator:'Координатор', participant:'Участник'};
+    document.getElementById('p-role').textContent = roleLabel[me.role] || me.role;
+    document.getElementById('p-group').textContent = me.group_name || '—';
+    document.getElementById('p-id').textContent = me.telegram_id;
+  });
+</script>
+</body>
+</html>
