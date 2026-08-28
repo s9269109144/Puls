@@ -161,19 +161,27 @@
   <a href="settings.html" class="active">Настройки</a>
 </nav>
 
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-fetch('https://pulskomandy.duckdns.org/api/team', {cache:'no-store'})
-  .then(r => r.json())
-  .then(members => {
-    const me = members.find(m => m.role === 'owner') || members[0];
-    if(!me) return;
-    document.getElementById('p-initial').textContent = (me.name||'?').slice(0,1).toUpperCase();
-    document.getElementById('p-name').textContent = me.name || 'Без имени';
-    const roleLabel = {owner:'Владелец', admin:'Админ', coordinator:'Координатор', participant:'Участник'};
-    document.getElementById('p-role').textContent = roleLabel[me.role] || me.role;
-    document.getElementById('p-group').textContent = me.group_name || '—';
-    document.getElementById('p-id').textContent = me.telegram_id;
-  });
+const tg = window.Telegram && window.Telegram.WebApp;
+if(tg) tg.ready();
+const initData = tg ? tg.initData : '';
+const myId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+
+if(initData){
+  fetch('https://pulskomandy.duckdns.org/api/team?initData=' + encodeURIComponent(initData), {cache:'no-store'})
+    .then(r => r.ok ? r.json() : [])
+    .then(members => {
+      const me = members.find(m => m.telegram_id === myId) || members[0];
+      if(!me) return;
+      document.getElementById('p-initial').textContent = (me.name||'?').slice(0,1).toUpperCase();
+      document.getElementById('p-name').textContent = me.name || 'Без имени';
+      const roleLabel = {owner:'Владелец', admin:'Админ', coordinator:'Координатор', participant:'Участник'};
+      document.getElementById('p-role').textContent = roleLabel[me.role] || me.role;
+      document.getElementById('p-group').textContent = me.group_name || '—';
+      document.getElementById('p-id').textContent = me.telegram_id;
+    });
+}
 </script>
 </body>
 </html>

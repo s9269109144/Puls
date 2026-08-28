@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Пульс команды — Команда</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root{
     --blue:#4f7df5;
@@ -171,27 +172,40 @@ function renderBranch(member, byMentor){
   return html;
 }
 
-fetch('https://pulskomandy.duckdns.org/api/team', {cache:'no-store'})
-  .then(r => r.json())
-  .then(members => {
-    document.getElementById('total-count').textContent = members.length;
-    document.getElementById('group-count').textContent = GROUPS.length;
+const tg = window.Telegram && window.Telegram.WebApp;
+if(tg) tg.ready();
+const initData = tg ? tg.initData : '';
 
-    const byMentor = {};
-    members.forEach(m => {
-      const key = m.mentor_id || 'root';
-      (byMentor[key] = byMentor[key] || []).push(m);
+if(!initData){
+  document.getElementById('tree').innerHTML =
+    '<div class="empty">Открой это через кнопку в Telegram-боте — вне Telegram список команды не показывается.</div>';
+} else {
+  fetch('https://pulskomandy.duckdns.org/api/team?initData=' + encodeURIComponent(initData), {cache:'no-store'})
+    .then(r => {
+      if(!r.ok) throw new Error('unauthorized');
+      return r.json();
+    })
+    .then(members => {
+      document.getElementById('total-count').textContent = members.length;
+      document.getElementById('group-count').textContent = GROUPS.length;
+
+      const ids = new Set(members.map(m => m.telegram_id));
+      const byMentor = {};
+      members.forEach(m => {
+        const key = ids.has(m.mentor_id) ? m.mentor_id : 'root';
+        (byMentor[key] = byMentor[key] || []).push(m);
+      });
+      const roots = byMentor['root'] || [];
+
+      const tree = document.getElementById('tree');
+      tree.innerHTML = roots.length
+        ? roots.map(m => renderBranch(m, byMentor)).join('')
+        : '<div class="empty">Пока никого нет</div>';
+    })
+    .catch(() => {
+      document.getElementById('tree').innerHTML = '<div class="empty">Не удалось загрузить команду</div>';
     });
-    const roots = byMentor['root'] || [];
-
-    const tree = document.getElementById('tree');
-    tree.innerHTML = roots.length
-      ? roots.map(m => renderBranch(m, byMentor)).join('')
-      : '<div class="empty">Пока никого нет</div>';
-  })
-  .catch(() => {
-    document.getElementById('tree').innerHTML = '<div class="empty">Нет данных</div>';
-  });
+}
 </script>
 </body>
 </html>
