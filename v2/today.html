@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Пульс команды — Сегодня</title>
+<style>
+  :root{
+    --blue:#4f7df5;
+    --blue-soft:#eef2ff;
+    --background:#f3f6fd;
+    --card:#ffffff;
+    --border:#e4e8ed;
+    --foreground:#152033;
+    --muted-foreground:#697487;
+    --navy:#10243e;
+    --mint:#5aab93;
+    --mint-soft:#eaf7f2;
+    --coral:#ee785c;
+    --coral-soft:#fff0eb;
+    --violet:#8970bd;
+    --violet-soft:#f2edfb;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--background);
+    color:var(--foreground);
+    padding:20px 16px 40px;
+  }
+  .wrap{max-width:420px;margin:0 auto;}
+  header{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+  .logo{
+    width:36px;height:36px;border-radius:10px;background:var(--blue);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
+  }
+  header h1{font-size:16px;margin:0;}
+  header small{color:var(--muted-foreground);display:block;font-size:12px;}
+
+  .hero{
+    background:var(--navy);
+    color:#fff;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:16px;
+  }
+  .hero .label{font-size:13px;opacity:.7;margin-bottom:6px;}
+  .hero .value{font-size:32px;font-weight:700;}
+  .hero .sub{font-size:13px;opacity:.8;margin-top:6px;}
+
+  .section-title{
+    font-size:14px;font-weight:600;color:var(--muted-foreground);
+    margin:20px 0 10px;text-transform:uppercase;letter-spacing:.03em;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px;
+    margin-bottom:10px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .badge{
+    width:44px;height:44px;border-radius:12px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-size:18px;
+  }
+  .b-club{background:var(--blue-soft);color:var(--blue);}
+  .b-study{background:var(--mint-soft);color:var(--mint);}
+  .b-live{background:var(--coral-soft);color:var(--coral);}
+  .b-default{background:var(--violet-soft);color:var(--violet);}
+
+  .card .info{flex:1;min-width:0;}
+  .card .title{font-weight:600;font-size:14px;margin-bottom:2px;}
+  .card .meta{font-size:12px;color:var(--muted-foreground);}
+  .card .cat{
+    display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;
+    background:var(--blue-soft);color:var(--blue);margin-top:4px;
+  }
+  .rsvp{
+    display:flex;gap:6px;flex:0 0 auto;
+  }
+  .rsvp button{
+    border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;
+  }
+  .rsvp .yes{background:var(--blue);color:#fff;}
+  .rsvp .no{background:var(--muted-foreground,#697487);opacity:.15;color:var(--foreground);}
+
+  nav{
+    position:fixed;bottom:0;left:0;right:0;
+    background:#fff;border-top:1px solid var(--border);
+    display:flex;justify-content:space-around;padding:10px 0;
+    max-width:420px;margin:0 auto;
+  }
+  nav div{font-size:11px;color:var(--muted-foreground);text-align:center;}
+  nav div.active{color:var(--blue);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">П</div>
+    <div>
+      <h1>Пульс команды</h1>
+      <small>Ближайшие события</small>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="label">Событий впереди</div>
+    <div class="value" id="hero-count">—</div>
+    <div class="sub" id="hero-sub">загрузка…</div>
+  </div>
+
+  <div class="section-title">Ближайшие</div>
+  <div id="list"></div>
+</div>
+
+<nav>
+  <div class="active">Сегодня</div>
+  <div>Календарь</div>
+  <div>Уведомления</div>
+  <div>Команда</div>
+  <div>Настройки</div>
+</nav>
+
+<script>
+const CATEGORY_ICON = {
+  'клуб 100': {cls:'b-club', icon:'💯'},
+  'обучение': {cls:'b-study', icon:'🎓'},
+  'эфир/марафон': {cls:'b-live', icon:'🔴'},
+  'планёрка': {cls:'b-default', icon:'🗓'},
+  'акция': {cls:'b-default', icon:'🎉'},
+  'дедлайн': {cls:'b-default', icon:'⏰'},
+};
+
+function fmtDate(dtStr){
+  const [datePart, timePart] = dtStr.split(' ');
+  const [y,m,d] = datePart.split('-');
+  return `${d}.${m} в ${timePart}`;
+}
+
+async function load(){
+  let events = [];
+  try{
+    const res = await fetch('events.json', {cache:'no-store'});
+    events = await res.json();
+  }catch(e){
+    document.getElementById('hero-sub').textContent = 'нет данных';
+    return;
+  }
+  document.getElementById('hero-count').textContent = events.length;
+  document.getElementById('hero-sub').textContent = events.length
+    ? `ближайшее: ${events[0].title}, ${fmtDate(events[0].event_dt)}`
+    : 'событий не найдено';
+
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  events.forEach(ev => {
+    const meta = CATEGORY_ICON[ev.category] || CATEGORY_ICON['планёрка'];
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="badge ${meta.cls}">${meta.icon}</div>
+      <div class="info">
+        <div class="title">${ev.title}</div>
+        <div class="meta">${fmtDate(ev.event_dt)} · ${ev.responsible || ''}</div>
+        <span class="cat">${ev.category || ''}</span>
+      </div>
+      <div class="rsvp">
+        <button class="yes">Буду</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+load();
+</script>
+</body>
+</html>
