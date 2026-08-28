@@ -137,6 +137,9 @@
       <input id="f-link" placeholder="https://..."/>
       <label>Ответственный (необязательно)</label>
       <input id="f-responsible" placeholder="Сергей"/>
+      <label>Фотография (необязательно)</label>
+      <input id="f-image" type="file" accept="image/*"/>
+      <img id="f-image-preview" style="display:none;width:100%;border-radius:12px;margin-top:8px;"/>
       <button class="btn btn-primary" id="btn-create">Добавить событие</button>
       <div id="create-msg"></div>
     </div>
@@ -176,6 +179,24 @@ function toApiDate(local){
   // "2026-09-01T19:00" -> "2026-09-01 19:00"
   return local.replace('T', ' ');
 }
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('f-image').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const preview = document.getElementById('f-image-preview');
+  if(!file){ preview.style.display = 'none'; return; }
+  const dataUrl = await readFileAsDataUrl(file);
+  preview.src = dataUrl;
+  preview.style.display = 'block';
+});
 
 async function loadPending(){
   const card = document.getElementById('pending-card');
@@ -219,13 +240,16 @@ async function loadEvents(){
     if(!rows.length){ card.innerHTML = '<div class="empty">Событий нет</div>'; return; }
     card.innerHTML = rows.map(ev => `
       <div class="event-item" data-id="${ev.id}">
+        ${ev.image_url ? `<img src="${ev.image_url}" style="width:100%;border-radius:10px;margin-bottom:8px;">` : ''}
         <div class="title">${ev.title}</div>
         <div class="meta">${ev.event_dt} · ${ev.category || ''} · ${ev.group_name}</div>
         <div class="row-actions">
           <button class="btn-edit" style="background:var(--blue-soft);color:var(--blue);">Название</button>
           <button class="btn-desc" style="background:var(--blue-soft);color:var(--blue);">Описание</button>
+          <button class="btn-photo" style="background:var(--blue-soft);color:var(--blue);">Фото</button>
           <button class="btn-del" style="background:var(--coral-soft);color:var(--coral);">Удалить</button>
         </div>
+        <input type="file" accept="image/*" class="photo-input" style="display:none;">
       </div>
     `).join('');
     card.querySelectorAll('.event-item').forEach(item => {
@@ -245,6 +269,19 @@ async function loadEvents(){
         await fetch(`${API}/api/admin/events/${id}/update`, {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({initData, field:'description', value})
+        });
+        loadEvents();
+      });
+      item.querySelector('.btn-photo').addEventListener('click', () => {
+        item.querySelector('.photo-input').click();
+      });
+      item.querySelector('.photo-input').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const value = await readFileAsDataUrl(file);
+        await fetch(`${API}/api/admin/events/${id}/update`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({initData, field:'image_url', value})
         });
         loadEvents();
       });
@@ -275,11 +312,13 @@ document.getElementById('btn-create').addEventListener('click', async () => {
     showMsg(msgEl, 'Заполни название и дату', false);
     return;
   }
+  const imageFile = document.getElementById('f-image').files[0];
+  const image_data_url = imageFile ? await readFileAsDataUrl(imageFile) : null;
   const res = await fetch(`${API}/api/admin/events/create`, {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
       initData, title, category, event_dt: toApiDate(dt), group_name,
-      description, link, responsible
+      description, link, responsible, image_data_url
     })
   });
   const data = await res.json();
@@ -289,6 +328,8 @@ document.getElementById('btn-create').addEventListener('click', async () => {
     document.getElementById('f-description').value = '';
     document.getElementById('f-link').value = '';
     document.getElementById('f-responsible').value = '';
+    document.getElementById('f-image').value = '';
+    document.getElementById('f-image-preview').style.display = 'none';
     loadEvents();
   } else {
     showMsg(msgEl, data.error || 'Ошибка', false);
