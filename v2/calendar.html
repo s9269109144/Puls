@@ -263,7 +263,7 @@ document.getElementById('next').addEventListener('click', () => {
   render();
 });
 
-fetch('events.json', {cache:'no-store'})
+fetch('https://pulskomandy.duckdns.org/api/events', {cache:'no-store'})
   .then(r => r.json())
   .then(data => { events = data; render(); })
   .catch(() => { document.getElementById('list').innerHTML = '<div class="empty">Нет данных</div>'; });

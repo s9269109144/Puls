@@ -147,7 +147,7 @@ function colorFor(name){
   return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
 
-fetch('team.json', {cache:'no-store'})
+fetch('https://pulskomandy.duckdns.org/api/team', {cache:'no-store'})
   .then(r => r.json())
   .then(members => {
     document.getElementById('total-count').textContent = members.length;

@@ -161,7 +161,7 @@ function fmtDate(dtStr){
 async function load(){
   let events = [];
   try{
-    const res = await fetch('events.json', {cache:'no-store'});
+    const res = await fetch('https://pulskomandy.duckdns.org/api/events', {cache:'no-store'});
     events = await res.json();
   }catch(e){
     document.getElementById('hero-sub').textContent = 'нет данных';

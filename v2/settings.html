@@ -162,7 +162,7 @@
 </nav>
 
 <script>
-fetch('team.json', {cache:'no-store'})
+fetch('https://pulskomandy.duckdns.org/api/team', {cache:'no-store'})
   .then(r => r.json())
   .then(members => {
     const me = members.find(m => m.role === 'owner') || members[0];
