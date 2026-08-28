@@ -108,11 +108,11 @@
     max-width:388px;margin:0 auto;
     box-shadow:0 8px 24px rgba(16,36,62,.14);
   }
-  nav div{
+  nav a{
     font-size:12px;font-weight:600;color:var(--muted-foreground);text-align:center;
-    padding:8px 6px;border-radius:12px;flex:1;
+    padding:8px 6px;border-radius:12px;flex:1;text-decoration:none;
   }
-  nav div.active{color:var(--blue);background:var(--blue-soft);}
+  nav a.active{color:var(--blue);background:var(--blue-soft);}
 </style>
 </head>
 <body>
@@ -136,10 +136,10 @@
 </div>
 
 <nav>
-  <div class="active">Сегодня</div>
-  <div>Календарь</div>
-  <div>Команда</div>
-  <div>Настройки</div>
+  <a href="today.html" class="active">Сегодня</a>
+  <a href="calendar.html">Календарь</a>
+  <a href="#">Команда</a>
+  <a href="#">Настройки</a>
 </nav>
 
 <script>
