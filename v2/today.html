@@ -186,11 +186,13 @@ if(tg){
   tg.ready();
   if(tg.initData) localStorage.setItem('tg_init_data', tg.initData);
 }
+const initData = (tg && tg.initData) || localStorage.getItem('tg_init_data') || '';
 
 async function load(){
   let events = [];
   try{
-    const res = await fetch('https://pulskomandy.duckdns.org/api/events', {cache:'no-store'});
+    const url = 'https://pulskomandy.duckdns.org/api/events' + (initData ? '?initData=' + encodeURIComponent(initData) : '');
+    const res = await fetch(url, {cache:'no-store'});
     events = await res.json();
   }catch(e){
     document.getElementById('hero-sub').textContent = 'нет данных';
@@ -227,7 +229,7 @@ async function load(){
           <span class="cat-pill ${meta.cat}">${ev.category || ''}</span>
         </div>
         <div class="rsvp">
-          <button data-id="${ev.id}">Буду</button>
+          <button data-id="${ev.id}" data-status="${ev.my_status || ''}">Буду</button>
         </div>
       </div>
       <div class="details">
@@ -243,15 +245,31 @@ async function load(){
   });
 
   document.querySelectorAll('.rsvp button').forEach(btn => {
-    const key = 'rsvp_' + btn.dataset.id;
-    if(localStorage.getItem(key) === '1'){
+    if(btn.dataset.status === 'yes'){
       btn.classList.add('going');
       btn.textContent = 'Иду ✓';
     }
-    btn.addEventListener('click', () => {
-      const going = btn.classList.toggle('going');
-      btn.textContent = going ? 'Иду ✓' : 'Буду';
-      localStorage.setItem(key, going ? '1' : '0');
+    btn.addEventListener('click', async () => {
+      if(!initData){
+        alert('Открой это через кнопку в Telegram-боте, чтобы отметить участие.');
+        return;
+      }
+      const going = !btn.classList.contains('going');
+      btn.disabled = true;
+      try{
+        const res = await fetch('https://pulskomandy.duckdns.org/api/rsvp', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({initData, event_id: Number(btn.dataset.id), status: going ? 'yes' : 'no'})
+        });
+        if(res.ok){
+          btn.classList.toggle('going', going);
+          btn.textContent = going ? 'Иду ✓' : 'Буду';
+        } else {
+          alert('Не получилось отправить, попробуй ещё раз');
+        }
+      } finally {
+        btn.disabled = false;
+      }
     });
   });
 }

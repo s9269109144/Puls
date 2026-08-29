@@ -117,21 +117,21 @@
         <div class="label">Напоминания о событиях</div>
         <div class="desc">За день, час и перед стартом</div>
       </div>
-      <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+      <label class="switch"><input type="checkbox" checked data-field="notify_reminders"><span class="slider"></span></label>
     </div>
     <div class="row">
       <div>
         <div class="label">Утренняя сводка</div>
         <div class="desc">Список событий на сегодня в 08:00</div>
       </div>
-      <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+      <label class="switch"><input type="checkbox" checked data-field="notify_digest"><span class="slider"></span></label>
     </div>
     <div class="row">
       <div>
         <div class="label">Обязательные события</div>
         <div class="desc">Дожим за 90 минут, если не ответил</div>
       </div>
-      <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+      <label class="switch"><input type="checkbox" checked data-field="notify_escalation"><span class="slider"></span></label>
     </div>
   </div>
 
@@ -169,8 +169,10 @@ if(tg) tg.ready();
 const initData = (tg && tg.initData) || localStorage.getItem('tg_init_data') || '';
 const myId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
 
+const API = 'https://pulskomandy.duckdns.org';
+
 if(initData){
-  fetch('https://pulskomandy.duckdns.org/api/team?initData=' + encodeURIComponent(initData), {cache:'no-store'})
+  fetch(`${API}/api/team?initData=` + encodeURIComponent(initData), {cache:'no-store'})
     .then(r => r.ok ? r.json() : [])
     .then(members => {
       const me = members.find(m => m.telegram_id === myId) || members[0];
@@ -182,6 +184,26 @@ if(initData){
       document.getElementById('p-group').textContent = me.group_name || '—';
       document.getElementById('p-id').textContent = me.telegram_id;
     });
+
+  fetch(`${API}/api/settings?initData=` + encodeURIComponent(initData), {cache:'no-store'})
+    .then(r => r.ok ? r.json() : null)
+    .then(settings => {
+      if(!settings) return;
+      document.querySelectorAll('.switch input[data-field]').forEach(input => {
+        input.checked = !!settings[input.dataset.field];
+      });
+    });
+
+  document.querySelectorAll('.switch input[data-field]').forEach(input => {
+    input.addEventListener('change', () => {
+      fetch(`${API}/api/settings`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({initData, field: input.dataset.field, value: input.checked})
+      }).catch(() => {});
+    });
+  });
+} else {
+  document.querySelectorAll('.switch input[data-field]').forEach(input => { input.disabled = true; });
 }
 </script>
 </body>

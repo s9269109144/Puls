@@ -149,6 +149,11 @@
       <div class="empty">Загрузка…</div>
     </div>
 
+    <div class="section-title">Все участники</div>
+    <div class="card" id="members-card">
+      <div class="empty">Загрузка…</div>
+    </div>
+
     <div class="section-title">Ближайшие события</div>
     <div class="card" id="events-card">
       <div class="empty">Загрузка…</div>
@@ -224,6 +229,63 @@ async function loadPending(){
           body: JSON.stringify({initData, telegram_id: id, group})
         });
         if(res.ok){ loadPending(); } else { btn.disabled = false; alert('Не получилось, попробуй ещё раз'); }
+      });
+    });
+  }catch(e){
+    card.innerHTML = '<div class="empty">Ошибка загрузки</div>';
+  }
+}
+
+const ROLES = [
+  {value:'participant', label:'Участник'},
+  {value:'coordinator', label:'Координатор'},
+  {value:'admin', label:'Админ'},
+];
+
+async function loadMembers(){
+  const card = document.getElementById('members-card');
+  try{
+    const res = await fetch(`${API}/api/admin/members?initData=${encodeURIComponent(initData)}`, {cache:'no-store'});
+    const rows = await res.json();
+    if(!res.ok){ card.innerHTML = '<div class="empty">Нет доступа</div>'; return; }
+    if(!rows.length){ card.innerHTML = '<div class="empty">Участников нет</div>'; return; }
+    const roleLabel = {owner:'Владелец', admin:'Админ', coordinator:'Координатор', participant:'Участник'};
+    card.innerHTML = rows.map(u => `
+      <div class="pending-item" data-id="${u.telegram_id}">
+        <div class="name">${u.name || 'Без имени'} <span style="color:var(--muted-foreground);font-weight:400;">— ${roleLabel[u.role] || u.role}</span></div>
+        <div class="meta">telegram_id ${u.telegram_id} · группа: ${u.group_name || '—'}</div>
+        <label style="margin:8px 0 4px;">Группа / ранг</label>
+        <div class="group-buttons group-set">
+          ${GROUPS.map(g => `<button data-group="${g}" ${g === u.group_name ? 'disabled' : ''}>${g}</button>`).join('')}
+        </div>
+        ${u.role === 'owner' ? '' : `
+        <label style="margin:8px 0 4px;">Роль</label>
+        <div class="group-buttons role-set">
+          ${ROLES.map(r => `<button data-role="${r.value}" ${r.value === u.role ? 'disabled' : ''}>${r.label}</button>`).join('')}
+        </div>`}
+      </div>
+    `).join('');
+    card.querySelectorAll('.pending-item').forEach(item => {
+      const id = Number(item.dataset.id);
+      item.querySelectorAll('.group-set button').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
+          const res = await fetch(`${API}/api/admin/setgroup`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({initData, telegram_id: id, group: btn.dataset.group})
+          });
+          if(res.ok){ loadMembers(); } else { btn.disabled = false; alert('Не получилось, попробуй ещё раз'); }
+        });
+      });
+      item.querySelectorAll('.role-set button').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
+          const res = await fetch(`${API}/api/admin/setrole`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({initData, telegram_id: id, role: btn.dataset.role})
+          });
+          if(res.ok){ loadMembers(); } else { btn.disabled = false; alert('Не получилось, попробуй ещё раз'); }
+        });
       });
     });
   }catch(e){
@@ -347,6 +409,7 @@ if(!initData){
       if(me && (me.role === 'owner' || me.role === 'admin')){
         document.getElementById('content').style.display = 'block';
         loadPending();
+        loadMembers();
         loadEvents();
       } else {
         document.getElementById('noaccess').style.display = 'block';
