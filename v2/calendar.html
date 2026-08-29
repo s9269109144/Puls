@@ -302,11 +302,16 @@ document.getElementById('next').addEventListener('click', () => {
 
 const tg = window.Telegram && window.Telegram.WebApp;
 const initData = (tg && tg.initData) || localStorage.getItem('tg_init_data') || '';
-const eventsUrl = 'https://pulskomandy.duckdns.org/api/events' + (initData ? '?initData=' + encodeURIComponent(initData) : '');
-fetch(eventsUrl, {cache:'no-store'})
-  .then(r => r.json())
-  .then(data => { events = data; render(); })
-  .catch(() => { document.getElementById('list').innerHTML = '<div class="empty">Нет данных</div>'; });
+const qsParam = initData ? '?initData=' + encodeURIComponent(initData) : '';
+const API = 'https://pulskomandy.duckdns.org';
+
+Promise.all([
+  fetch(`${API}/api/events${qsParam}`, {cache:'no-store'}).then(r => r.json()).catch(() => []),
+  fetch(`${API}/api/events/history${qsParam}`, {cache:'no-store'}).then(r => r.json()).catch(() => []),
+]).then(([upcoming, past]) => {
+  events = [...past, ...upcoming];
+  render();
+}).catch(() => { document.getElementById('list').innerHTML = '<div class="empty">Нет данных</div>'; });
 </script>
 </body>
 </html>
