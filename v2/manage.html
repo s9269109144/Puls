@@ -144,7 +144,25 @@
       <div id="create-msg"></div>
     </div>
 
-    <div class="section-title">Новые без группы</div>
+    <div class="section-title">Добавить участника вручную</div>
+    <div class="card">
+      <label>Telegram ID</label>
+      <input id="au-id" placeholder="417214059" inputmode="numeric"/>
+      <label>Имя</label>
+      <input id="au-name" placeholder="Имя Фамилия"/>
+      <label>Группа</label>
+      <select id="au-group">
+        <option value="">Без группы (одобрить позже)</option>
+        <option value="Новички">Новички</option>
+        <option value="Партнёры">Партнёры</option>
+        <option value="Мастера">Мастера</option>
+        <option value="Ключевые">Ключевые</option>
+      </select>
+      <button class="btn btn-primary" id="btn-add-user">Добавить</button>
+      <div id="add-user-msg"></div>
+    </div>
+
+    <div class="section-title">Новые без группы — одобрить</div>
     <div class="card" id="pending-card">
       <div class="empty">Загрузка…</div>
     </div>
@@ -201,6 +219,32 @@ document.getElementById('f-image').addEventListener('change', async (e) => {
   const dataUrl = await readFileAsDataUrl(file);
   preview.src = dataUrl;
   preview.style.display = 'block';
+});
+
+document.getElementById('btn-add-user').addEventListener('click', async () => {
+  const msgEl = document.getElementById('add-user-msg');
+  const idVal = document.getElementById('au-id').value.trim();
+  const name = document.getElementById('au-name').value.trim();
+  const group_name = document.getElementById('au-group').value || null;
+  if(!idVal || !name){
+    showMsg(msgEl, 'Заполни Telegram ID и имя', false);
+    return;
+  }
+  const res = await fetch(`${API}/api/admin/users/create`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({initData, telegram_id: Number(idVal), name, group_name})
+  });
+  const data = await res.json();
+  if(res.ok){
+    showMsg(msgEl, 'Участник добавлен!', true);
+    document.getElementById('au-id').value = '';
+    document.getElementById('au-name').value = '';
+    document.getElementById('au-group').value = '';
+    loadPending();
+    loadMembers();
+  } else {
+    showMsg(msgEl, data.error || 'Ошибка', false);
+  }
 });
 
 async function loadPending(){
@@ -263,7 +307,8 @@ async function loadMembers(){
         <label style="margin:8px 0 4px;">Роль</label>
         <div class="group-buttons role-set">
           ${ROLES.map(r => `<button data-role="${r.value}" ${r.value === u.role ? 'disabled' : ''}>${r.label}</button>`).join('')}
-        </div>`}
+        </div>
+        <button class="btn btn-danger btn-remove-user" style="margin-top:10px;">Удалить из бота</button>`}
       </div>
     `).join('');
     card.querySelectorAll('.pending-item').forEach(item => {
@@ -288,6 +333,18 @@ async function loadMembers(){
           if(res.ok){ loadMembers(); } else { btn.disabled = false; alert('Не получилось, попробуй ещё раз'); }
         });
       });
+      const removeBtn = item.querySelector('.btn-remove-user');
+      if(removeBtn){
+        removeBtn.addEventListener('click', async () => {
+          if(!confirm('Удалить этого участника из бота? Это нельзя отменить.')) return;
+          removeBtn.disabled = true;
+          const res = await fetch(`${API}/api/admin/users/delete`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({initData, telegram_id: id})
+          });
+          if(res.ok){ loadMembers(); } else { removeBtn.disabled = false; alert('Не получилось, попробуй ещё раз'); }
+        });
+      }
     });
   }catch(e){
     card.innerHTML = '<div class="empty">Ошибка загрузки</div>';
