@@ -252,7 +252,8 @@ async function loadMembers(){
     const roleLabel = {owner:'Владелец', admin:'Админ', coordinator:'Координатор', participant:'Участник'};
     card.innerHTML = rows.map(u => `
       <div class="pending-item" data-id="${u.telegram_id}">
-        <div class="name">${u.name || 'Без имени'} <span style="color:var(--muted-foreground);font-weight:400;">— ${roleLabel[u.role] || u.role}</span></div>
+        <img src="${API}/api/avatar/${u.telegram_id}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;" onerror="this.remove()">
+        <div class="name" style="display:inline;">${u.name || 'Без имени'} <span style="color:var(--muted-foreground);font-weight:400;">— ${roleLabel[u.role] || u.role}</span></div>
         <div class="meta">telegram_id ${u.telegram_id} · группа: ${u.group_name || '—'}</div>
         <label style="margin:8px 0 4px;">Группа / ранг</label>
         <div class="group-buttons group-set">

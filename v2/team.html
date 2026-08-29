@@ -151,9 +151,11 @@ function colorFor(name){
 }
 
 function memberHtml(m){
+  const avatarUrl = `https://pulskomandy.duckdns.org/api/avatar/${m.telegram_id}`;
   return `
     <div class="member">
-      <div class="avatar" style="background:${colorFor(m.name)}">${initials(m.name)}</div>
+      <div class="avatar" style="background:${colorFor(m.name)};">${initials(m.name)}</div>
+      <img src="${avatarUrl}" style="display:none;" onload="this.previousElementSibling.style.backgroundImage='url('+this.src+')';this.previousElementSibling.style.backgroundSize='cover';this.previousElementSibling.style.backgroundPosition='center';this.previousElementSibling.textContent='';" onerror="this.remove()">
       <div class="info">
         <div class="name">${m.name || 'Без имени'}</div>
         <span class="role-pill ${ROLE_CLASS[m.role] || 'role-participant'}">${ROLE_LABEL[m.role] || m.role}</span>

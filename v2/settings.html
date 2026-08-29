@@ -104,6 +104,7 @@
 
   <div class="profile">
     <div class="avatar" id="p-initial">?</div>
+    <img id="p-avatar-img" style="display:none;" onerror="this.remove()">
     <div>
       <div class="name" id="p-name">—</div>
       <div class="role" id="p-role">—</div>
@@ -115,7 +116,7 @@
     <div class="row">
       <div>
         <div class="label">Напоминания о событиях</div>
-        <div class="desc">За день, час и перед стартом</div>
+        <div class="desc">За день, час и перед стартом (обязательные события, например планёрки, приходят всегда)</div>
       </div>
       <label class="switch"><input type="checkbox" checked data-field="notify_reminders"><span class="slider"></span></label>
     </div>
@@ -178,6 +179,14 @@ if(initData){
       const me = members.find(m => m.telegram_id === myId) || members[0];
       if(!me) return;
       document.getElementById('p-initial').textContent = (me.name||'?').slice(0,1).toUpperCase();
+      const avatarImg = document.getElementById('p-avatar-img');
+      avatarImg.onload = () => {
+        document.getElementById('p-initial').style.backgroundImage = `url('${avatarImg.src}')`;
+        document.getElementById('p-initial').style.backgroundSize = 'cover';
+        document.getElementById('p-initial').style.backgroundPosition = 'center';
+        document.getElementById('p-initial').textContent = '';
+      };
+      avatarImg.src = `${API}/api/avatar/${me.telegram_id}`;
       document.getElementById('p-name').textContent = me.name || 'Без имени';
       const roleLabel = {owner:'Владелец', admin:'Админ', coordinator:'Координатор', participant:'Участник'};
       document.getElementById('p-role').textContent = roleLabel[me.role] || me.role;
