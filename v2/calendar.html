@@ -343,7 +343,9 @@ Promise.all([
   fetch(`${API}/api/events${qsParam}`, {cache:'no-store'}).then(r => r.json()).catch(() => []),
   fetch(`${API}/api/events/history${qsParam}`, {cache:'no-store'}).then(r => r.json()).catch(() => []),
 ]).then(([upcoming, past]) => {
-  events = [...past, ...upcoming];
+  events = [...past, ...upcoming].sort((a, b) =>
+    a.event_dt < b.event_dt ? -1 : a.event_dt > b.event_dt ? 1 : 0
+  );
   render();
 }).catch(() => { document.getElementById('list').innerHTML = '<div class="empty">Нет данных</div>'; });
 </script>

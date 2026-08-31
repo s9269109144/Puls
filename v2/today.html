@@ -163,11 +163,6 @@
     <div class="sub" id="hero-sub">загрузка…</div>
   </div>
 
-  <div id="events-section" style="display:none;">
-    <div class="section-title">Мероприятия</div>
-    <div id="list-events"></div>
-  </div>
-
   <div class="section-title">Ближайшие</div>
   <div id="list"></div>
 </div>
@@ -293,22 +288,13 @@ async function load(){
     return wrap;
   }
 
-  const meropriyatiya = events.filter(ev => ev.category === 'мероприятие');
-  const ostalnye = events.filter(ev => ev.category !== 'мероприятие');
-
-  const eventsSection = document.getElementById('events-section');
-  const listEvents = document.getElementById('list-events');
-  listEvents.innerHTML = '';
-  if(meropriyatiya.length){
-    eventsSection.style.display = 'block';
-    meropriyatiya.forEach(ev => listEvents.appendChild(renderCard(ev)));
-  } else {
-    eventsSection.style.display = 'none';
-  }
+  const ordered = [...events].sort((a, b) =>
+    a.event_dt < b.event_dt ? -1 : a.event_dt > b.event_dt ? 1 : 0
+  );
 
   const list = document.getElementById('list');
   list.innerHTML = '';
-  ostalnye.forEach(ev => list.appendChild(renderCard(ev)));
+  ordered.forEach(ev => list.appendChild(renderCard(ev)));
 
   document.querySelectorAll('.rsvp button').forEach(btn => {
     if(btn.dataset.status === 'yes'){
