@@ -124,6 +124,8 @@
       </select>
       <label>Дата и время</label>
       <input id="f-datetime" type="datetime-local"/>
+      <label>Дата окончания — только для многодневных (необязательно)</label>
+      <input id="f-dateend" type="date"/>
       <label>Группа</label>
       <select id="f-group">
         <option value="all">Все</option>
@@ -363,10 +365,11 @@ async function loadEvents(){
       <div class="event-item" data-id="${ev.id}">
         ${ev.image_url ? `<img src="${ev.image_url}" style="width:100%;border-radius:10px;margin-bottom:8px;">` : ''}
         <div class="title">${ev.title}</div>
-        <div class="meta">${ev.event_dt} · ${ev.category || ''} · ${ev.group_name}</div>
+        <div class="meta">${ev.event_dt}${ev.event_end ? ' … ' + ev.event_end : ''} · ${ev.category || ''} · ${ev.group_name}</div>
         <div class="row-actions">
           <button class="btn-edit" style="background:var(--blue-soft);color:var(--blue);">Название</button>
           <button class="btn-desc" style="background:var(--blue-soft);color:var(--blue);">Описание</button>
+          <button class="btn-end" style="background:var(--blue-soft);color:var(--blue);">Окончание</button>
           <button class="btn-photo" style="background:var(--blue-soft);color:var(--blue);">Фото</button>
           <button class="btn-del" style="background:var(--coral-soft);color:var(--coral);">Удалить</button>
         </div>
@@ -390,6 +393,17 @@ async function loadEvents(){
         await fetch(`${API}/api/admin/events/${id}/update`, {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({initData, field:'description', value})
+        });
+        loadEvents();
+      });
+      item.querySelector('.btn-end').addEventListener('click', async () => {
+        const value = prompt('Дата окончания для многодневного (ГГГГ-ММ-ДД). Пусто — сделать однодневным:');
+        if(value === null) return;
+        const v = value.trim();
+        if(v && !/^\d{4}-\d{2}-\d{2}$/.test(v)){ alert('Нужен формат ГГГГ-ММ-ДД'); return; }
+        await fetch(`${API}/api/admin/events/${id}/update`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({initData, field:'event_end', value: v || null})
         });
         loadEvents();
       });
@@ -425,6 +439,7 @@ document.getElementById('btn-create').addEventListener('click', async () => {
   const title = document.getElementById('f-title').value.trim();
   const category = document.getElementById('f-category').value;
   const dt = document.getElementById('f-datetime').value;
+  const event_end = document.getElementById('f-dateend').value; // "" или "YYYY-MM-DD"
   const group_name = document.getElementById('f-group').value;
   const description = document.getElementById('f-description').value.trim();
   const link = document.getElementById('f-link').value.trim();
@@ -438,7 +453,7 @@ document.getElementById('btn-create').addEventListener('click', async () => {
   const res = await fetch(`${API}/api/admin/events/create`, {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      initData, title, category, event_dt: toApiDate(dt), group_name,
+      initData, title, category, event_dt: toApiDate(dt), event_end: event_end || null, group_name,
       description, link, responsible, image_data_url
     })
   });
@@ -446,6 +461,7 @@ document.getElementById('btn-create').addEventListener('click', async () => {
   if(res.ok){
     showMsg(msgEl, 'Событие добавлено!', true);
     document.getElementById('f-title').value = '';
+    document.getElementById('f-dateend').value = '';
     document.getElementById('f-description').value = '';
     document.getElementById('f-link').value = '';
     document.getElementById('f-responsible').value = '';
