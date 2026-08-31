@@ -35,24 +35,37 @@
   .wrap{max-width:420px;margin:0 auto;}
   header{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
   .logo{
-    width:40px;height:40px;border-radius:12px;background:var(--blue);
-    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;
+    width:40px;height:40px;border-radius:12px;overflow:hidden;flex:0 0 auto;
     box-shadow:var(--shadow);
   }
+  .logo img{width:100%;height:100%;object-fit:cover;display:block;}
   header h1{font-size:20px;margin:0;font-weight:700;}
   header small{color:var(--muted-foreground);display:block;font-size:14px;margin-top:2px;}
 
   .hero{
-    background:var(--navy);
+    background:linear-gradient(135deg,#5b86ff 0%,#3a5fe0 55%,#2f49c9 100%);
     color:#fff;
     border-radius:22px;
     padding:24px 22px;
     margin-bottom:28px;
-    box-shadow:0 8px 24px rgba(16,36,62,.18);
+    box-shadow:0 12px 30px rgba(58,95,224,.38);
   }
-  .hero .label{font-size:14px;opacity:.65;margin-bottom:8px;letter-spacing:.02em;}
-  .hero .value{font-size:44px;font-weight:800;line-height:1;}
-  .hero .sub{font-size:14px;opacity:.75;margin-top:10px;line-height:1.4;}
+  .hero .label{
+    font-size:13px;font-weight:700;margin-bottom:10px;
+    text-transform:uppercase;letter-spacing:.08em;color:#eaf0ff;
+  }
+  .hero .value{font-size:48px;font-weight:800;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,.18);}
+  .hero .sub{font-size:14px;color:#fff;margin-top:14px;line-height:1.5;}
+  .hero .sub .hero-day{font-weight:700;margin-bottom:8px;color:#eaf0ff;}
+  .hero .sub .hero-item{
+    display:flex;gap:10px;align-items:baseline;
+    font-size:14.5px;font-weight:600;line-height:1.7;
+  }
+  .hero .sub .hero-time{
+    font-weight:800;flex:0 0 auto;min-width:46px;
+    background:rgba(255,255,255,.18);border-radius:7px;
+    padding:1px 7px;text-align:center;font-size:13px;
+  }
 
   .section-title{
     font-size:13px;font-weight:700;color:var(--muted-foreground);
@@ -133,7 +146,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="logo">П</div>
+    <div class="logo"><img src="logo.jpg" alt="Пульс команды"></div>
     <div>
       <h1>Пульс команды</h1>
       <small>Ближайшие события</small>
@@ -141,7 +154,7 @@
   </header>
 
   <div class="hero">
-    <div class="label">Событий впереди</div>
+    <div class="label">Предстоящие события</div>
     <div class="value" id="hero-count">—</div>
     <div class="sub" id="hero-sub">загрузка…</div>
   </div>
@@ -199,9 +212,22 @@ async function load(){
     return;
   }
   document.getElementById('hero-count').textContent = events.length;
-  document.getElementById('hero-sub').textContent = events.length
-    ? `Ближайшее — ${events[0].title}, ${fmtDate(events[0].event_dt)}`
-    : 'Событий не найдено';
+  const subEl = document.getElementById('hero-sub');
+  if(!events.length){
+    subEl.textContent = 'Событий не найдено';
+  } else {
+    const firstDate = events[0].event_dt.split(' ')[0];
+    const sameDay = events.filter(e => e.event_dt.split(' ')[0] === firstDate);
+    const [yy,mm,dd] = firstDate.split('-');
+    if(sameDay.length === 1){
+      subEl.innerHTML = `Ближайшее — ${escapeHtml(sameDay[0].title)}, ${fmtDate(sameDay[0].event_dt)}`;
+    } else {
+      const items = sameDay.map(e =>
+        `<div class="hero-item"><span class="hero-time">${e.event_dt.split(' ')[1]}</span><span>${escapeHtml(e.title)}</span></div>`
+      ).join('');
+      subEl.innerHTML = `<div class="hero-day">Ближайшее — ${dd}.${mm}</div>${items}`;
+    }
+  }
 
   const list = document.getElementById('list');
   list.innerHTML = '';
