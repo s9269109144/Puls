@@ -192,9 +192,16 @@ const CATEGORY_ICON = {
 };
 
 function metaLine(ev){
+  const startDate = ev.event_dt.split(' ')[0];
+  const [, sm, sd] = startDate.split('-');
+  const end = ev.event_end ? ev.event_end.slice(0,10) : '';
+  if(end && end !== startDate){
+    const [, em, ed] = end.split('-');
+    const tail = ev.category === 'мероприятие' ? ' · весь день' : '';
+    return `${sd}.${sm} – ${ed}.${em}${tail}`;
+  }
   if(ev.category === 'мероприятие'){
-    const [y,m,d] = ev.event_dt.split(' ')[0].split('-');
-    return `${d}.${m} · весь день`;
+    return `${sd}.${sm} · весь день`;
   }
   return fmtDate(ev.event_dt);
 }

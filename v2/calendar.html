@@ -191,6 +191,12 @@ function fmtDate(dtStr){
 function metaLine(ev){
   const [datePart] = ev.event_dt.split(' ');
   const [y,m,d] = datePart.split('-');
+  const end = ev.event_end ? ev.event_end.slice(0,10) : '';
+  if(end && end !== datePart){
+    const [ey,em,ed] = end.split('-');
+    const tail = ev.category === 'мероприятие' ? ' · весь день' : '';
+    return `${parseInt(d)} ${MONTHS[parseInt(m)-1]} – ${parseInt(ed)} ${MONTHS[parseInt(em)-1]}${tail}`;
+  }
   if(ev.category === 'мероприятие'){
     return `${parseInt(d)} ${MONTHS[parseInt(m)-1]} · весь день`;
   }
@@ -219,8 +225,17 @@ function render(){
 
   const eventsByDay = {};
   events.forEach(ev => {
-    const day = ev.event_dt.split(' ')[0];
-    (eventsByDay[day] = eventsByDay[day] || []).push(ev);
+    const start = ev.event_dt.split(' ')[0];
+    const end = ev.event_end ? ev.event_end.slice(0,10) : start;
+    const cur = new Date(start + 'T00:00:00');
+    const last = new Date((end >= start ? end : start) + 'T00:00:00');
+    let guard = 0;
+    while(cur <= last && guard < 120){
+      const key = cur.toISOString().slice(0,10);
+      (eventsByDay[key] = eventsByDay[key] || []).push(ev);
+      cur.setDate(cur.getDate() + 1);
+      guard++;
+    }
   });
 
   const first = new Date(y, m, 1);
@@ -258,7 +273,12 @@ function render(){
     shown = eventsByDay[selectedKey] || [];
     title.textContent = 'События в этот день';
   } else {
-    shown = events.filter(ev => ev.event_dt.slice(0,7) === `${y}-${String(m+1).padStart(2,'0')}`);
+    const ym = `${y}-${String(m+1).padStart(2,'0')}`;
+    shown = events.filter(ev =>
+      ev.event_dt.slice(0,7) === ym ||
+      (ev.event_end && ev.event_end.slice(0,7) === ym) ||
+      (ev.event_end && ev.event_dt.slice(0,7) < ym && ev.event_end.slice(0,7) > ym)
+    );
     title.textContent = 'Все события месяца';
   }
 
