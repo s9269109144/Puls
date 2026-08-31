@@ -20,6 +20,8 @@
     --coral-soft:#fde9e2;
     --violet:#7c5fc4;
     --violet-soft:#efe9fb;
+    --amber:#b9791b;
+    --amber-soft:#fcefd7;
     --shadow: 0 2px 10px rgba(16,36,62,.06);
   }
   *{box-sizing:border-box;}
@@ -98,6 +100,7 @@
   .b-study{background:var(--mint-soft);color:var(--mint);}
   .b-live{background:var(--coral-soft);color:var(--coral);}
   .b-default{background:var(--violet-soft);color:var(--violet);}
+  .b-event{background:var(--amber-soft);color:var(--amber);}
 
   .card .info{flex:1;min-width:0;}
   .card .title{
@@ -113,6 +116,7 @@
   .cat-study{background:var(--mint-soft);color:var(--mint);}
   .cat-live{background:var(--coral-soft);color:var(--coral);}
   .cat-default{background:var(--violet-soft);color:var(--violet);}
+  .cat-event{background:var(--amber-soft);color:var(--amber);}
 
   .empty{color:var(--muted-foreground);font-size:14px;padding:20px 4px;text-align:center;}
 
@@ -173,6 +177,7 @@ const CATEGORY_ICON = {
   'планёрка': {cls:'b-default', cat:'cat-default', icon:'🗓'},
   'акция': {cls:'b-default', cat:'cat-default', icon:'🎉'},
   'дедлайн': {cls:'b-default', cat:'cat-default', icon:'⏰'},
+  'мероприятие': {cls:'b-event', cat:'cat-event', icon:'🌍'},
 };
 const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const MONTH_NAMES = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
@@ -181,6 +186,15 @@ function fmtDate(dtStr){
   const [datePart, timePart] = dtStr.split(' ');
   const [y,m,d] = datePart.split('-');
   return `${parseInt(d)} ${MONTHS[parseInt(m)-1]} · ${timePart}`;
+}
+
+function metaLine(ev){
+  const [datePart] = ev.event_dt.split(' ');
+  const [y,m,d] = datePart.split('-');
+  if(ev.category === 'мероприятие'){
+    return `${parseInt(d)} ${MONTHS[parseInt(m)-1]} · весь день`;
+  }
+  return fmtDate(ev.event_dt);
 }
 
 function escapeHtml(s){
@@ -273,7 +287,7 @@ function render(){
         ${badgeHtml}
         <div class="info">
           <div class="title">${ev.title}</div>
-          <div class="meta">${fmtDate(ev.event_dt)}</div>
+          <div class="meta">${metaLine(ev)}</div>
           <span class="cat-pill ${meta.cat}">${ev.category || ''}</span>
         </div>
       </div>

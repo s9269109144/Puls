@@ -21,6 +21,8 @@
     --coral-soft:#fde9e2;
     --violet:#7c5fc4;
     --violet-soft:#efe9fb;
+    --amber:#b9791b;
+    --amber-soft:#fcefd7;
     --shadow: 0 2px 10px rgba(16,36,62,.06);
   }
   *{box-sizing:border-box;}
@@ -104,6 +106,7 @@
   .b-study{background:var(--mint-soft);color:var(--mint);}
   .b-live{background:var(--coral-soft);color:var(--coral);}
   .b-default{background:var(--violet-soft);color:var(--violet);}
+  .b-event{background:var(--amber-soft);color:var(--amber);}
 
   .card .info{flex:1;min-width:0;}
   .card .title{
@@ -121,6 +124,7 @@
   .cat-study{background:var(--mint-soft);color:var(--mint);}
   .cat-live{background:var(--coral-soft);color:var(--coral);}
   .cat-default{background:var(--violet-soft);color:var(--violet);}
+  .cat-event{background:var(--amber-soft);color:var(--amber);}
 
   .rsvp{flex:0 0 auto;}
   .rsvp button{
@@ -159,6 +163,11 @@
     <div class="sub" id="hero-sub">загрузка…</div>
   </div>
 
+  <div id="events-section" style="display:none;">
+    <div class="section-title">Мероприятия</div>
+    <div id="list-events"></div>
+  </div>
+
   <div class="section-title">Ближайшие</div>
   <div id="list"></div>
 </div>
@@ -179,7 +188,16 @@ const CATEGORY_ICON = {
   'планёрка': {cls:'b-default', cat:'cat-default', icon:'🗓'},
   'акция': {cls:'b-default', cat:'cat-default', icon:'🎉'},
   'дедлайн': {cls:'b-default', cat:'cat-default', icon:'⏰'},
+  'мероприятие': {cls:'b-event', cat:'cat-event', icon:'🌍'},
 };
+
+function metaLine(ev){
+  if(ev.category === 'мероприятие'){
+    const [y,m,d] = ev.event_dt.split(' ')[0].split('-');
+    return `${d}.${m} · весь день`;
+  }
+  return fmtDate(ev.event_dt);
+}
 
 function escapeHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -229,9 +247,7 @@ async function load(){
     }
   }
 
-  const list = document.getElementById('list');
-  list.innerHTML = '';
-  events.forEach(ev => {
+  function renderCard(ev){
     const meta = CATEGORY_ICON[ev.category] || CATEGORY_ICON['планёрка'];
     const wrap = document.createElement('div');
     wrap.className = 'card-wrap';
@@ -251,7 +267,7 @@ async function load(){
         ${badgeHtml}
         <div class="info">
           <div class="title">${ev.title}</div>
-          <div class="meta">${fmtDate(ev.event_dt)}</div>
+          <div class="meta">${metaLine(ev)}</div>
           <span class="cat-pill ${meta.cat}">${ev.category || ''}</span>
         </div>
         <div class="rsvp">
@@ -267,8 +283,25 @@ async function load(){
       if(e.target.closest('.rsvp')) return;
       wrap.querySelector('.details').classList.toggle('open');
     });
-    list.appendChild(wrap);
-  });
+    return wrap;
+  }
+
+  const meropriyatiya = events.filter(ev => ev.category === 'мероприятие');
+  const ostalnye = events.filter(ev => ev.category !== 'мероприятие');
+
+  const eventsSection = document.getElementById('events-section');
+  const listEvents = document.getElementById('list-events');
+  listEvents.innerHTML = '';
+  if(meropriyatiya.length){
+    eventsSection.style.display = 'block';
+    meropriyatiya.forEach(ev => listEvents.appendChild(renderCard(ev)));
+  } else {
+    eventsSection.style.display = 'none';
+  }
+
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  ostalnye.forEach(ev => list.appendChild(renderCard(ev)));
 
   document.querySelectorAll('.rsvp button').forEach(btn => {
     if(btn.dataset.status === 'yes'){
