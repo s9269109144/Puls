@@ -171,6 +171,7 @@
         <option value="Партнёры">Партнёры</option>
         <option value="Мастера">Мастера</option>
         <option value="Ключевые">Ключевые</option>
+        <option value="Гость">Гость (потребители)</option>
       </select>
       <label>Описание (необязательно)</label>
       <textarea id="f-description" placeholder="Каждая строка — с новой строки. **текст** — жирным."></textarea>
@@ -198,6 +199,7 @@
         <option value="Партнёры">Партнёры</option>
         <option value="Мастера">Мастера</option>
         <option value="Ключевые">Ключевые</option>
+        <option value="Гость">Гость (потребитель)</option>
       </select>
       <button class="btn btn-primary" id="btn-add-user">Добавить</button>
       <div id="add-user-msg"></div>
@@ -352,10 +354,10 @@ async function loadMembers(){
           <img src="${API}/api/avatar/${u.telegram_id}" onerror="this.remove()">
           <div class="name">${u.name || 'Без имени'} <span style="color:var(--muted-foreground);font-weight:400;">— ${roleLabel[u.role] || u.role}</span></div>
         </div>
-        <div class="meta">telegram_id ${u.telegram_id} · группа: ${u.group_name || '—'}</div>
+        <div class="meta">telegram_id ${u.telegram_id} · группа: ${u.group_name || '—'}${u.mentor_name ? ' · пригласил(а): ' + u.mentor_name : ''}</div>
         <label>Группа / ранг</label>
         <div class="group-buttons group-set">
-          ${GROUPS.map(g => `<button data-group="${g}" ${g === u.group_name ? 'disabled' : ''}>${g}</button>`).join('')}
+          ${[...GROUPS, 'Гость'].map(g => `<button data-group="${g}" ${g === u.group_name ? 'disabled' : ''}>${g}</button>`).join('')}
         </div>
         ${u.role === 'owner' ? '' : `
         <label>Роль</label>
@@ -420,7 +422,7 @@ async function loadEvents(){
       return list.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(cap(v))}</option>`).join('');
     };
     const groupOpts = cur => `<option value="all"${cur === 'all' ? ' selected' : ''}>Все</option>` +
-      GROUPS.map(g => `<option value="${g}"${g === cur ? ' selected' : ''}>${g}</option>`).join('');
+      [...GROUPS, 'Гость'].map(g => `<option value="${g}"${g === cur ? ' selected' : ''}>${g}</option>`).join('');
     const metaHtml = e => `${fmtDT(e.event_dt)}${e.event_end ? ' … ' + fmtD(e.event_end) : ''}<br>${esc(e.category || '—')} · ${e.group_name === 'all' ? 'все' : esc(e.group_name)}`;
 
     card.innerHTML = rows.map(ev => {
