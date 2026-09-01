@@ -101,8 +101,21 @@
     background:var(--blue-soft);color:var(--blue);
   }
   .event-item .row-actions .btn-del{
-    grid-column:1 / -1;background:var(--coral-soft);color:var(--coral);
+    background:var(--coral-soft);color:var(--coral);
   }
+  .event-item .edit-form{
+    margin-top:12px;padding-top:12px;border-top:1px solid #eef1f6;
+  }
+  .event-item .edit-form.hidden{display:none;}
+  .event-item .edit-form label{
+    display:block;font-size:11px;font-weight:700;color:var(--muted-foreground);
+    text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;
+  }
+  .event-item .edit-form .form-actions{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;
+  }
+  .event-item .edit-form .form-actions .btn{margin-top:0;}
+  .btn-cancel{background:#eef1f6;color:#48505e;}
   .empty{color:var(--muted-foreground);font-size:13px;text-align:center;padding:10px;}
 
   nav{
@@ -399,72 +412,141 @@ async function loadEvents(){
     const rows = await res.json();
     if(!res.ok){ card.innerHTML = '<div class="empty">Нет доступа</div>'; return; }
     if(!rows.length){ card.innerHTML = '<div class="empty">Событий нет</div>'; return; }
-    card.innerHTML = rows.map(ev => `
+    const CATS = ['клуб 100','обучение','эфир/марафон','планёрка','акция','мероприятие','клиентское мероприятие','дедлайн'];
+    const esc = s => (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+    const catOpts = cur => {
+      const list = CATS.includes(cur) || !cur ? CATS : [cur, ...CATS];
+      return list.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(cap(v))}</option>`).join('');
+    };
+    const groupOpts = cur => `<option value="all"${cur === 'all' ? ' selected' : ''}>Все</option>` +
+      GROUPS.map(g => `<option value="${g}"${g === cur ? ' selected' : ''}>${g}</option>`).join('');
+    const metaHtml = e => `${fmtDT(e.event_dt)}${e.event_end ? ' … ' + fmtD(e.event_end) : ''}<br>${esc(e.category || '—')} · ${e.group_name === 'all' ? 'все' : esc(e.group_name)}`;
+
+    card.innerHTML = rows.map(ev => {
+      const dtLocal = (ev.event_dt || '').replace(' ', 'T').slice(0, 16);
+      const endVal = ev.event_end ? ev.event_end.slice(0, 10) : '';
+      const grp = ev.group_name || 'all';
+      return `
       <div class="event-item" data-id="${ev.id}">
-        ${ev.image_url ? `<img src="${ev.image_url}" style="width:100%;border-radius:10px;margin-bottom:8px;">` : ''}
-        <div class="title">${ev.title}</div>
-        <div class="meta">${fmtDT(ev.event_dt)}${ev.event_end ? ' … ' + fmtD(ev.event_end) : ''}<br>${ev.category || '—'} · ${ev.group_name === 'all' ? 'все' : ev.group_name}</div>
+        <div class="ev-photo">${ev.image_url ? `<img src="${esc(ev.image_url)}" style="width:100%;border-radius:10px;margin-bottom:8px;">` : ''}</div>
+        <div class="title">${esc(ev.title)}</div>
+        <div class="meta">${metaHtml(ev)}</div>
         <div class="row-actions">
-          <button class="btn-edit">Название</button>
-          <button class="btn-desc">Описание</button>
-          <button class="btn-end">Окончание</button>
-          <button class="btn-photo">Фото</button>
+          <button class="btn-edit-toggle">Редактировать</button>
           <button class="btn-del">Удалить</button>
         </div>
-        <input type="file" accept="image/*" class="photo-input" style="display:none;">
-      </div>
-    `).join('');
+        <div class="edit-form hidden">
+          <label>Название</label>
+          <input class="e-title" value="${esc(ev.title)}">
+          <label>Категория</label>
+          <select class="e-category">${catOpts(ev.category)}</select>
+          <label>Дата и время</label>
+          <input type="datetime-local" class="e-datetime" value="${dtLocal}">
+          <label>Дата окончания — только для многодневных</label>
+          <input type="date" class="e-dateend" value="${endVal}">
+          <label>Группа</label>
+          <select class="e-group">${groupOpts(grp)}</select>
+          <label>Описание</label>
+          <textarea class="e-description" rows="4">${esc(ev.description || '')}</textarea>
+          <label>Ссылка</label>
+          <input class="e-link" value="${esc(ev.link || '')}">
+          <label>Ответственный</label>
+          <input class="e-responsible" value="${esc(ev.responsible || '')}">
+          <label>Заменить фотографию</label>
+          <input type="file" accept="image/*" class="e-photo">
+          <div class="form-actions">
+            <button class="btn btn-primary e-save">Сохранить</button>
+            <button class="btn btn-cancel e-cancel">Закрыть</button>
+          </div>
+          <div class="e-msg"></div>
+        </div>
+      </div>`;
+    }).join('');
+
     card.querySelectorAll('.event-item').forEach(item => {
       const id = item.dataset.id;
-      item.querySelector('.btn-edit').addEventListener('click', async () => {
-        const value = prompt('Новое название события:');
-        if(value === null) return;
-        await fetch(`${API}/api/admin/events/${id}/update`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({initData, field:'title', value})
-        });
-        loadEvents();
+      const form = item.querySelector('.edit-form');
+      const toggleBtn = item.querySelector('.btn-edit-toggle');
+      const msg = item.querySelector('.e-msg');
+
+      toggleBtn.addEventListener('click', () => {
+        form.classList.toggle('hidden');
+        toggleBtn.textContent = form.classList.contains('hidden') ? 'Редактировать' : 'Свернуть';
       });
-      item.querySelector('.btn-desc').addEventListener('click', async () => {
-        const value = prompt('Новое описание события:');
-        if(value === null) return;
-        await fetch(`${API}/api/admin/events/${id}/update`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({initData, field:'description', value})
-        });
-        loadEvents();
+      item.querySelector('.e-cancel').addEventListener('click', () => {
+        form.classList.add('hidden');
+        toggleBtn.textContent = 'Редактировать';
+        msg.innerHTML = '';
       });
-      item.querySelector('.btn-end').addEventListener('click', async () => {
-        const value = prompt('Дата окончания для многодневного (ГГГГ-ММ-ДД). Пусто — сделать однодневным:');
-        if(value === null) return;
-        const v = value.trim();
-        if(v && !/^\d{4}-\d{2}-\d{2}$/.test(v)){ alert('Нужен формат ГГГГ-ММ-ДД'); return; }
-        await fetch(`${API}/api/admin/events/${id}/update`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({initData, field:'event_end', value: v || null})
-        });
-        loadEvents();
+
+      item.querySelector('.e-save').addEventListener('click', async () => {
+        const saveBtn = item.querySelector('.e-save');
+        const cur = {
+          title: item.querySelector('.e-title').value.trim(),
+          category: item.querySelector('.e-category').value,
+          event_dt: item.querySelector('.e-datetime').value.replace('T', ' ').slice(0, 16),
+          event_end: item.querySelector('.e-dateend').value || null,
+          group_name: item.querySelector('.e-group').value,
+          description: item.querySelector('.e-description').value.trim(),
+          link: item.querySelector('.e-link').value.trim(),
+          responsible: item.querySelector('.e-responsible').value.trim(),
+        };
+        if(!cur.title){ showMsg(msg, 'Название не может быть пустым', false); return; }
+        if(!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(cur.event_dt)){ showMsg(msg, 'Проверь дату и время', false); return; }
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Сохраняю…';
+        try{
+          for(const [field, value] of Object.entries(cur)){
+            const r = await fetch(`${API}/api/admin/events/${id}/update`, {
+              method:'POST', headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({initData, field, value})
+            });
+            if(!r.ok){
+              const d = await r.json().catch(() => ({}));
+              throw new Error(d.error || `не сохранилось поле: ${field}`);
+            }
+          }
+          const photoFile = item.querySelector('.e-photo').files[0];
+          if(photoFile){
+            const dataUrl = await readFileAsDataUrl(photoFile);
+            const r = await fetch(`${API}/api/admin/events/${id}/update`, {
+              method:'POST', headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({initData, field:'image_url', value: dataUrl})
+            });
+            if(!r.ok) throw new Error('фото не сохранилось');
+            item.querySelector('.ev-photo').innerHTML =
+              `<img src="${dataUrl}" style="width:100%;border-radius:10px;margin-bottom:8px;">`;
+            item.querySelector('.e-photo').value = '';
+          }
+          item.querySelector('.title').textContent = cur.title;
+          item.querySelector('.meta').innerHTML = metaHtml(cur);
+          showMsg(msg, 'Сохранено ✓', true);
+        }catch(e){
+          showMsg(msg, e.message || 'Ошибка сохранения', false);
+        }finally{
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Сохранить';
+        }
       });
-      item.querySelector('.btn-photo').addEventListener('click', () => {
-        item.querySelector('.photo-input').click();
-      });
-      item.querySelector('.photo-input').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
-        const value = await readFileAsDataUrl(file);
-        await fetch(`${API}/api/admin/events/${id}/update`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({initData, field:'image_url', value})
-        });
-        loadEvents();
-      });
-      item.querySelector('.btn-del').addEventListener('click', async () => {
-        if(!confirm('Точно удалить событие?')) return;
-        await fetch(`${API}/api/admin/events/${id}/delete`, {
+
+      const delBtn = item.querySelector('.btn-del');
+      let armed = false, armTimer = null;
+      delBtn.addEventListener('click', async () => {
+        if(!armed){
+          armed = true;
+          delBtn.textContent = 'Нажми ещё раз';
+          armTimer = setTimeout(() => { armed = false; delBtn.textContent = 'Удалить'; }, 4000);
+          return;
+        }
+        clearTimeout(armTimer);
+        delBtn.disabled = true;
+        const r = await fetch(`${API}/api/admin/events/${id}/delete`, {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({initData})
         });
-        loadEvents();
+        if(r.ok){ item.remove(); }
+        else { delBtn.disabled = false; armed = false; delBtn.textContent = 'Удалить'; showMsg(msg, 'Не получилось удалить', false); }
       });
     });
   }catch(e){

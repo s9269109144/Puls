@@ -90,6 +90,7 @@
   .details.open{display:block;padding-top:14px;}
   .details img{width:100%;border-radius:12px;margin-bottom:12px;}
   .details .row{font-size:14px;margin-bottom:8px;color:var(--foreground);white-space:pre-line;line-height:1.5;}
+  .details .row.desc{font-size:16px;line-height:1.6;margin-bottom:12px;}
   .details .row b{color:var(--muted-foreground);font-weight:600;}
   .details a{color:var(--blue);word-break:break-all;}
   .badge{
@@ -300,7 +301,7 @@ function render(){
          </div>`
       : `<div class="badge ${meta.cls}">${meta.icon}</div>`;
     const detailRows = [];
-    if(ev.description) detailRows.push(`<div class="row"><b>Описание:</b><br>${formatText(ev.description)}</div>`);
+    if(ev.description) detailRows.push(`<div class="row desc"><b>Описание:</b><br>${formatText(ev.description)}</div>`);
     if(ev.link) detailRows.push(`<div class="row"><b>Ссылка:</b> <a href="${ev.link}" target="_blank">${ev.link}</a></div>`);
     if(ev.responsible) detailRows.push(`<div class="row"><b>Ответственный:</b> ${ev.responsible}</div>`);
     detailRows.push(`<div class="row"><b>Группа:</b> ${ev.group_name === 'all' ? 'все' : ev.group_name}</div>`);
