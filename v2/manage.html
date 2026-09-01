@@ -437,7 +437,9 @@ async function loadEvents(){
         <div class="row-actions">
           <button class="btn-edit-toggle">Редактировать</button>
           <button class="btn-del">Удалить</button>
+          ${grp === 'Гость' ? '<button class="btn-guests" style="grid-column:1 / -1;background:#e6f6f0;color:#3f9d81;">Гости и ссылка-приглашение</button>' : ''}
         </div>
+        ${grp === 'Гость' ? '<div class="guests-box hidden" style="margin-top:10px;font-size:13px;"></div>' : ''}
         <div class="edit-form hidden">
           <label>Название</label>
           <input class="e-title" value="${esc(ev.title)}">
@@ -481,6 +483,30 @@ async function loadEvents(){
         toggleBtn.textContent = 'Редактировать';
         msg.innerHTML = '';
       });
+
+      const guestsBtn = item.querySelector('.btn-guests');
+      if(guestsBtn){
+        const box = item.querySelector('.guests-box');
+        guestsBtn.addEventListener('click', async () => {
+          if(!box.classList.contains('hidden')){ box.classList.add('hidden'); return; }
+          box.classList.remove('hidden');
+          box.textContent = 'Загрузка…';
+          try{
+            const r = await fetch(`${API}/api/admin/events/${id}/guests?initData=${encodeURIComponent(initData)}`, {cache:'no-store'});
+            const d = await r.json();
+            if(!r.ok) throw new Error(d.error || 'ошибка');
+            const list = d.guests.length
+              ? d.guests.map(g => `• ${g.name}${g.invited_by ? ' — пригласил(а): ' + g.invited_by : ''}`).join('<br>')
+              : '<span style="color:var(--muted-foreground);">пока никто не записался</span>';
+            box.innerHTML =
+              `<div style="font-weight:700;margin-bottom:6px;">Ссылка-приглашение (от тебя):</div>` +
+              `<div style="word-break:break-all;background:#f9fafc;border:1px solid #e4e8ed;border-radius:8px;padding:8px;user-select:all;">${d.link || '—'}</div>` +
+              `<div style="font-weight:700;margin:10px 0 6px;">Записаны (${d.guests.length}):</div>${list}`;
+          }catch(e){
+            box.textContent = 'Не удалось загрузить: ' + (e.message || 'ошибка');
+          }
+        });
+      }
 
       item.querySelector('.e-save').addEventListener('click', async () => {
         const saveBtn = item.querySelector('.e-save');
