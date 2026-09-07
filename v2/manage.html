@@ -117,6 +117,8 @@
   .event-item .edit-form .form-actions .btn{margin-top:0;}
   .btn-cancel{background:#eef1f6;color:#48505e;}
   .empty{color:var(--muted-foreground);font-size:13px;text-align:center;padding:10px;}
+  .hidden{display:none;}
+  #btn-toggle-create{margin:0 0 20px;}
 
   nav{
     position:fixed;bottom:14px;left:16px;right:16px;background:#fff;border-radius:18px;
@@ -145,6 +147,8 @@
   </div>
 
   <div id="content" style="display:none;">
+    <button class="btn btn-primary" id="btn-toggle-create">+ Добавить событие</button>
+    <div id="create-section" class="hidden">
     <div class="section-title">Новое событие</div>
     <div class="card">
       <label>Название</label>
@@ -185,6 +189,12 @@
       <button class="btn btn-primary" id="btn-create">Добавить событие</button>
       <div id="create-msg"></div>
     </div>
+    </div>
+
+    <div class="section-title">Ближайшие события</div>
+    <div class="card" id="events-card">
+      <div class="empty">Загрузка…</div>
+    </div>
 
     <div class="section-title">Добавить участника вручную</div>
     <div class="card">
@@ -212,11 +222,6 @@
 
     <div class="section-title">Все участники</div>
     <div class="card" id="members-card">
-      <div class="empty">Загрузка…</div>
-    </div>
-
-    <div class="section-title">Ближайшие события</div>
-    <div class="card" id="events-card">
       <div class="empty">Загрузка…</div>
     </div>
   </div>
@@ -582,6 +587,13 @@ async function loadEvents(){
   }
 }
 
+const _createSection = document.getElementById('create-section');
+const _btnToggleCreate = document.getElementById('btn-toggle-create');
+_btnToggleCreate.addEventListener('click', () => {
+  const hidden = _createSection.classList.toggle('hidden');
+  _btnToggleCreate.textContent = hidden ? '+ Добавить событие' : '× Свернуть форму';
+});
+
 document.getElementById('btn-create').addEventListener('click', async () => {
   const msgEl = document.getElementById('create-msg');
   const title = document.getElementById('f-title').value.trim();
@@ -615,6 +627,8 @@ document.getElementById('btn-create').addEventListener('click', async () => {
     document.getElementById('f-responsible').value = '';
     document.getElementById('f-image').value = '';
     document.getElementById('f-image-preview').style.display = 'none';
+    _createSection.classList.add('hidden');
+    _btnToggleCreate.textContent = '+ Добавить событие';
     loadEvents();
   } else {
     showMsg(msgEl, data.error || 'Ошибка', false);
