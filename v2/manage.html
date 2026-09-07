@@ -436,7 +436,7 @@ async function loadEvents(){
       const grp = ev.group_name || 'all';
       return `
       <div class="event-item" data-id="${ev.id}">
-        <div class="ev-photo">${ev.image_url ? `<img src="${esc(ev.image_url)}" style="width:100%;border-radius:10px;margin-bottom:8px;">` : ''}</div>
+        <div class="ev-photo">${ev.image_url ? `<img src="${esc(ev.image_url)}" style="width:100%;border-radius:10px;margin-bottom:8px;" onerror="this.remove()">` : ''}</div>
         <div class="title">${esc(ev.title)}</div>
         <div class="meta">${metaHtml(ev)}</div>
         <div class="row-actions">
@@ -549,7 +549,7 @@ async function loadEvents(){
             });
             if(!r.ok) throw new Error('фото не сохранилось');
             item.querySelector('.ev-photo').innerHTML =
-              `<img src="${dataUrl}" style="width:100%;border-radius:10px;margin-bottom:8px;">`;
+              `<img src="${dataUrl}" style="width:100%;border-radius:10px;margin-bottom:8px;" onerror="this.remove()">`;
             item.querySelector('.e-photo').value = '';
           }
           item.querySelector('.title').textContent = cur.title;
