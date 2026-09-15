@@ -595,6 +595,8 @@ _btnToggleCreate.addEventListener('click', () => {
 });
 
 document.getElementById('btn-create').addEventListener('click', async () => {
+  const createBtn = document.getElementById('btn-create');
+  if(createBtn.disabled) return;
   const msgEl = document.getElementById('create-msg');
   const title = document.getElementById('f-title').value.trim();
   const category = document.getElementById('f-category').value;
@@ -608,30 +610,35 @@ document.getElementById('btn-create').addEventListener('click', async () => {
     showMsg(msgEl, 'Заполни название и дату', false);
     return;
   }
-  const imageFile = document.getElementById('f-image').files[0];
-  const image_data_url = imageFile ? await readFileAsDataUrl(imageFile) : null;
-  const res = await fetch(`${API}/api/admin/events/create`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      initData, title, category, event_dt: toApiDate(dt), event_end: event_end || null, group_name,
-      description, link, responsible, image_data_url
-    })
-  });
-  const data = await res.json();
-  if(res.ok){
-    showMsg(msgEl, 'Событие добавлено!', true);
-    document.getElementById('f-title').value = '';
-    document.getElementById('f-dateend').value = '';
-    document.getElementById('f-description').value = '';
-    document.getElementById('f-link').value = '';
-    document.getElementById('f-responsible').value = '';
-    document.getElementById('f-image').value = '';
-    document.getElementById('f-image-preview').style.display = 'none';
-    _createSection.classList.add('hidden');
-    _btnToggleCreate.textContent = '+ Добавить событие';
-    loadEvents();
-  } else {
-    showMsg(msgEl, data.error || 'Ошибка', false);
+  createBtn.disabled = true;
+  try{
+    const imageFile = document.getElementById('f-image').files[0];
+    const image_data_url = imageFile ? await readFileAsDataUrl(imageFile) : null;
+    const res = await fetch(`${API}/api/admin/events/create`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        initData, title, category, event_dt: toApiDate(dt), event_end: event_end || null, group_name,
+        description, link, responsible, image_data_url
+      })
+    });
+    const data = await res.json();
+    if(res.ok){
+      showMsg(msgEl, 'Событие добавлено!', true);
+      document.getElementById('f-title').value = '';
+      document.getElementById('f-dateend').value = '';
+      document.getElementById('f-description').value = '';
+      document.getElementById('f-link').value = '';
+      document.getElementById('f-responsible').value = '';
+      document.getElementById('f-image').value = '';
+      document.getElementById('f-image-preview').style.display = 'none';
+      _createSection.classList.add('hidden');
+      _btnToggleCreate.textContent = '+ Добавить событие';
+      loadEvents();
+    } else {
+      showMsg(msgEl, data.error || 'Ошибка', false);
+    }
+  } finally {
+    createBtn.disabled = false;
   }
 });
 
