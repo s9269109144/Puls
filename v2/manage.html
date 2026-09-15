@@ -614,14 +614,27 @@ document.getElementById('btn-create').addEventListener('click', async () => {
   try{
     const imageFile = document.getElementById('f-image').files[0];
     const image_data_url = imageFile ? await readFileAsDataUrl(imageFile) : null;
-    const res = await fetch(`${API}/api/admin/events/create`, {
+    const payload = {
+      initData, title, category, event_dt: toApiDate(dt), event_end: event_end || null, group_name,
+      description, link, responsible, image_data_url
+    };
+    let res = await fetch(`${API}/api/admin/events/create`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        initData, title, category, event_dt: toApiDate(dt), event_end: event_end || null, group_name,
-        description, link, responsible, image_data_url
-      })
+      body: JSON.stringify(payload)
     });
-    const data = await res.json();
+    let data = await res.json();
+    if(res.status === 409 && data.error === 'duplicate'){
+      if(!confirm(data.message)){
+        showMsg(msgEl, 'Отменено', false);
+        return;
+      }
+      payload.force = true;
+      res = await fetch(`${API}/api/admin/events/create`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      data = await res.json();
+    }
     if(res.ok){
       showMsg(msgEl, 'Событие добавлено!', true);
       document.getElementById('f-title').value = '';
@@ -635,7 +648,7 @@ document.getElementById('btn-create').addEventListener('click', async () => {
       _btnToggleCreate.textContent = '+ Добавить событие';
       loadEvents();
     } else {
-      showMsg(msgEl, data.error || 'Ошибка', false);
+      showMsg(msgEl, data.message || data.error || 'Ошибка', false);
     }
   } finally {
     createBtn.disabled = false;
