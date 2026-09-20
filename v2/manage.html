@@ -320,6 +320,7 @@ async function loadPending(){
         <div class="group-buttons" data-id="${u.telegram_id}">
           ${GROUPS.map(g => `<button data-group="${g}">${g}</button>`).join('')}
         </div>
+        <button class="btn-remove-user" data-remove-id="${u.telegram_id}" style="margin-top:8px">Удалить из бота</button>
       </div>
     `).join('');
     card.querySelectorAll('.group-buttons button').forEach(btn => {
@@ -330,6 +331,18 @@ async function loadPending(){
         const res = await fetch(`${API}/api/admin/setgroup`, {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({initData, telegram_id: id, group})
+        });
+        if(res.ok){ loadPending(); } else { btn.disabled = false; alert('Не получилось, попробуй ещё раз'); }
+      });
+    });
+    card.querySelectorAll('.btn-remove-user').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(!confirm('Удалить этого участника из бота?')) return;
+        const id = Number(btn.dataset.removeId);
+        btn.disabled = true;
+        const res = await fetch(`${API}/api/admin/users/delete`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({initData, telegram_id: id})
         });
         if(res.ok){ loadPending(); } else { btn.disabled = false; alert('Не получилось, попробуй ещё раз'); }
       });
