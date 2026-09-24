@@ -152,6 +152,23 @@
     padding:8px 3px;border-radius:12px;flex:1;text-decoration:none;
   }
   nav a.active{color:#fff;background:var(--blue);}
+
+  .quick-grid{display:flex;gap:10px;margin-bottom:16px;}
+  .quick-btn{
+    flex:1;display:flex;align-items:center;gap:10px;
+    padding:16px 14px;border-radius:16px;
+    color:#fff;font-weight:700;font-size:15px;text-decoration:none;
+    box-shadow:var(--shadow);
+  }
+  .quick-btn .qicon{font-size:20px;line-height:1;}
+  .quick-btn.q-today{background:linear-gradient(135deg,#4fb87d 0%,#2f9d61 100%);}
+  .quick-btn.q-calendar{background:linear-gradient(135deg,#5b86ff 0%,#3a5fe0 100%);}
+  .quick-support{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    width:100%;padding:16px;border-radius:16px;margin-bottom:22px;
+    background:var(--navy);color:#fff;font-weight:700;font-size:15px;
+    text-decoration:none;box-shadow:var(--shadow);
+  }
 </style>
 </head>
 <body>
@@ -163,6 +180,12 @@
       <small>Ближайшие события</small>
     </div>
   </header>
+
+  <div class="quick-grid">
+    <a href="today.html" class="quick-btn q-today"><span class="qicon">📅</span>Сегодня</a>
+    <a href="calendar.html" class="quick-btn q-calendar"><span class="qicon">🗓</span>Календарь</a>
+  </div>
+  <a href="https://t.me/doronin_sergei" target="_blank" class="quick-support">💬 Поддержка — написать Сергею</a>
 
   <div class="hero">
     <div class="label">Предстоящие события</div>
